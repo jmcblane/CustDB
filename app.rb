@@ -4,6 +4,12 @@ require 'sqlite3'
 require 'fox16'
 include Fox
 
+if File.exists?("./cust.db") == false
+    db = SQLite3::Database.new "./cust.db"
+    db.execute("create table customers ( custid integer not null primary key autoincrement, fname text not null, lname text not null, addr text not null, ph1 text not null, ph2 text, email text, cityzip text not null);")
+    db.execute("create table jobs ( jobid integer primary key autoincrement, custid integer not null, desc text not null, notes text, active boolean);")
+end
+    
 DB = SQLite3::Database.new "./cust.db"
 
 class Customers < FXMainWindow
