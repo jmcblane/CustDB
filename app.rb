@@ -6,8 +6,8 @@ include Fox
 
 if File.exists?("./cust.db") == false
     db = SQLite3::Database.new "./cust.db"
-    db.execute("create virtual table customers using fts5(fname, lname, addr, ph1, ph2, email, cityzip);")
-    db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed);")
+    db.execute("create virtual table customers using fts5(fname, lname, addr, ph1, ph2, email, cityzip, identifier);")
+    db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier);")
 end
     
 DB = SQLite3::Database.new "./cust.db"
@@ -15,7 +15,7 @@ DB = SQLite3::Database.new "./cust.db"
 class Customers < FXMainWindow
     def initialize(app)
         app = app
-        super(app, "Customer Database", :width=> 275, :height => 250)
+        super(app, "Customer Database", :width=> 300, :height => 250)
 
         mainframe = FXHorizontalFrame.new(self,
             LAYOUT_FILL_X|LAYOUT_FILL_Y,
@@ -74,11 +74,12 @@ class Customers < FXMainWindow
 
     def load_customers
         @customer_list.clearItems
-        customers = DB.execute("select lname, fname, rowid from customers;")
+        customers = DB.execute("select lname, fname, rowid, identifier from customers;")
         for i in customers
             active_jobs = DB.execute("select * from jobs where custid == #{i[2]} and active == 1")
+            #name = "#{i[0]}, #{i[1]}  --  #{i[3]}"
             name = "#{i[0]}, #{i[1]}"
-            name += "  $$" if active_jobs.length > 0
+            name += "  --  $$" if active_jobs.length > 0
             @customer_list.appendItem(name, nil, i[2])
         end
         if @customer_list.numItems > 0
@@ -129,7 +130,7 @@ class Customer_Jobs < FXMainWindow
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ") if @custid != nil
         @custname = "NEW CUSTOMER" if @custid == nil
 
-        super(app, "Customer: #{@custname}", :width=> 400, :height => 400)
+        super(app, "Customer: #{@custname}", :width=> 450, :height => 400)
 
         mainframe = FXVerticalFrame.new(self,
             LAYOUT_FILL_X|LAYOUT_FILL_Y, 
@@ -161,10 +162,17 @@ class Customer_Jobs < FXMainWindow
         @ph2_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         @email_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
+        separator = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_GROOVE)
+
         column3 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
+            LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH|PACK_UNIFORM_HEIGHT,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
         save_btn = FXButton.new(column3, "Save")
+        spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
+
+        spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
+        id_lbl = FXLabel.new(column3, "Cust ID:")
+        @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
         row2 = FXHorizontalFrame.new(mainframe,
             LAYOUT_FILL_X|LAYOUT_FILL_Y,
@@ -232,18 +240,18 @@ class Customer_Jobs < FXMainWindow
 
     def load_custie
         return if @custid == nil
-        fields = [@fname_txt, @lname_txt, @addr_txt, @ph1_txt, @ph2_txt, @email_txt, @cityzip_txt]
-        info = DB.execute("select fname, lname, addr, ph1, ph2, email, cityzip from customers where rowid == #{@custid};")[0]
-        for x in 0..6 do
+        fields = [@fname_txt, @lname_txt, @addr_txt, @ph1_txt, @ph2_txt, @email_txt, @cityzip_txt, @custid_txt]
+        info = DB.execute("select fname, lname, addr, ph1, ph2, email, cityzip, identifier from customers where rowid == #{@custid};")[0]
+        for x in 0..7 do
             fields[x].setText(info[x], true)
         end
     end
 
     def save_custie
         fields = {"fname" => @fname_txt, "lname" => @lname_txt, "addr" => @addr_txt,
-                  "ph1" => @ph1_txt, "ph2" => @ph2_txt, "email" => @email_txt, "cityzip" => @cityzip_txt}
+                  "ph1" => @ph1_txt, "ph2" => @ph2_txt, "email" => @email_txt, "cityzip" => @cityzip_txt, "identifier" => @custid_txt}
         if @custid == nil
-            DB.execute("insert into customers (fname, lname, addr, ph1, ph2, email, cityzip) values ('#{@fname_txt}', '#{@lname_txt}', '#{@addr_txt}', '#{@ph1_txt}', '#{@ph2_txt}', '#{@email_txt}', '#{@cityzip_txt}');")
+            DB.execute("insert into customers (fname, lname, addr, ph1, ph2, email, cityzip, identifier) values ('#{@fname_txt}', '#{@lname_txt}', '#{@addr_txt}', '#{@ph1_txt}', '#{@ph2_txt}', '#{@email_txt}', '#{@cityzip_txt}', '#{@custid_txt}');")
         else
             for x, y in fields
                 DB.execute("update customers set #{x} = '#{y}' where rowid == #{@custid};")
@@ -255,11 +263,11 @@ class Customer_Jobs < FXMainWindow
     def load_jobs
         return if @custid == nil
         @job_list.clearItems
-        jobs = DB.execute("select desc, rowid, active from jobs where custid == #{@custid};")
+        jobs = DB.execute("select desc, rowid, active, identifier from jobs where custid == #{@custid};")
         jobs.reverse!
         for i in jobs
-            desc = i[0]
-            desc += "  $$" if i[2] == 1
+            desc = "#{i[3]}  --  #{i[0]}"
+            desc += "  --  $$" if i[2] == 1
             @job_list.appendItem(desc, nil, i[1])
         end
         if @job_list.numItems > 0
@@ -314,17 +322,24 @@ class Job_Edit < FXMainWindow
             LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        fname_lbl = FXLabel.new(column1, "Customer:")
-        desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 5)
+        fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 3)
+        desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 6)
 
         column2 = FXVerticalFrame.new(row1,
             LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
-        name_lbl = FXLabel.new(column2, @custname)
+        subrow = FXHorizontalFrame.new(column2,
+            LAYOUT_FILL_X,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+        name_lbl = FXLabel.new(subrow, @custname)
+        spacer = FXFrame.new(subrow, LAYOUT_FILL_X)
+        jobid_lbl = FXLabel.new(subrow, "Job ID:", :padTop => 3)
+        @jobid_txt = FXTextField.new(subrow, 7)
+
         @desc_txt = FXTextField.new(column2, 30, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
         midrow = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X,
+            LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
         notes_lbl = FXLabel.new(midrow, "Notes:")
         spacer = FXFrame.new(midrow, LAYOUT_FILL_X)
@@ -345,9 +360,10 @@ class Job_Edit < FXMainWindow
 
     def load_job_info
         return @active_chk.setCheck(true) if @jobid == nil
-        info = DB.execute("select desc, notes, active from jobs where rowid == #{@jobid};")[0]
+        info = DB.execute("select desc, notes, active, identifier from jobs where rowid == #{@jobid};")[0]
         @desc_txt.setText(info[0], true)
         @notes_box.setText(info[1], true)
+        @jobid_txt.setText(info[3], true)
         if info[2] == 1
             @active_chk.setCheck(true)
         else
@@ -356,9 +372,9 @@ class Job_Edit < FXMainWindow
     end
 
     def save_job_info
-        fields = {"desc" => @desc_txt, "notes" => @notes_box, "active" => @active_chk.checkState}
+        fields = {"desc" => @desc_txt, "notes" => @notes_box, "active" => @active_chk.checkState, "identifier" => @jobid_txt}
         if @jobid == nil
-            DB.execute("insert into jobs (custid, desc, notes, active) values (#{@custid}, '#{@desc_txt}', '#{@notes_box}', #{@active_chk.checkState});")
+            DB.execute("insert into jobs (custid, desc, notes, active, identifier) values (#{@custid}, '#{@desc_txt}', '#{@notes_box}', #{@active_chk.checkState}, '#{@jobid_txt}');")
         else
             for x, y in fields
                 if x == "active"
@@ -398,6 +414,7 @@ class Search_Window < FXMainWindow
         spacer = FXHorizontalFrame.new(row1, LAYOUT_FILL_X)
         custie_btn = FXRadioButton.new(row1, "Customers", @which_search, FXDataTarget::ID_OPTION)
         job_btn = FXRadioButton.new(row1, "Jobs", @which_search, FXDataTarget::ID_OPTION + 1)
+        active_btn = FXRadioButton.new(row1, "Active Jobs", @which_search, FXDataTarget::ID_OPTION + 2)
         spacer = FXHorizontalFrame.new(row1, LAYOUT_FILL_X)
 
         row2 = FXHorizontalFrame.new(mainframe,
@@ -427,6 +444,7 @@ class Search_Window < FXMainWindow
     end
 
     def search_items
+        return if @search_txt.text == "*"
         @results_list.clearItems
 
         if @which_search.value == 0
@@ -437,7 +455,7 @@ class Search_Window < FXMainWindow
             end
 
             if results.length > 0
-                results.each { |i| @results_list.appendItem("#{i[1]}, #{i[0]} -- (#{i[2]})", nil, i[3]) }
+                results.each { |i| @results_list.appendItem("#{i[1]}, #{i[0]}  --  (#{i[2]})", nil, i[3]) }
             else
                 @results_list.appendItem("No results.")
             end
@@ -454,7 +472,23 @@ class Search_Window < FXMainWindow
                     name = "#{customer[1]}, #{customer[0]}"
                     desc = i[1] if i[2] == 0
                     desc = "#{i[1]} -- $$" if i[2] == 1
-                    @results_list.appendItem("#{name} -- #{desc}", nil, [i[0], i[3]])
+                    @results_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[3]])
+                end
+            else
+                @results_list.appendItem("No results.")
+            end
+        elsif @which_search.value == 2
+            begin
+                results = DB.execute("select custid, desc, rowid from jobs where active == 1;")
+            rescue
+                results = []
+            end
+            if results.length > 0
+                for i in results
+                    customer = DB.execute("select fname, lname from customers where rowid == #{i[0]};")[0]
+                    name = "#{customer[1]}, #{customer[0]}"
+                    desc = i[1]
+                    @results_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[2]])
                 end
             else
                 @results_list.appendItem("No results.")
@@ -468,7 +502,7 @@ class Search_Window < FXMainWindow
         if @which_search.value == 0
             info_win = Customer_Jobs.new(app, @which_result)
             info_win.create
-        elsif @which_search.value == 1
+        elsif @which_search.value == 1 or @which_search.value == 2
             info_win = Customer_Jobs.new(app, @which_result[0])
             info_win.create
             info_win.edit_job(@which_result[1])
