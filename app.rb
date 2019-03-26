@@ -14,32 +14,20 @@ DB = SQLite3::Database.new "./cust.db"
 
 class Customers < FXMainWindow
     def initialize(app)
-        app = app
         super(app, "Customer Database", :width=> 300, :height => 250)
 
-        mainframe = FXHorizontalFrame.new(self,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        mainframe = FXHorizontalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        frame1 = FXHorizontalFrame.new(mainframe,
-            FRAME_SUNKEN|LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        frame1 = FXHorizontalFrame.new(mainframe, FRAME_SUNKEN|LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @customer_list = FXList.new(frame1,
-                        :opts => LAYOUT_FILL|LIST_SINGLESELECT,
-                                   :width => 200)
+        @customer_list = FXList.new(frame1,:opts => LAYOUT_FILL|LIST_SINGLESELECT, :width => 200)
 
-        @customer_list.connect(SEL_SELECTED) do |x, y, z|
-            @custid = @customer_list.getItemData(z)
-        end
+        @customer_list.connect(SEL_SELECTED) { |x, y, z| @custid = @customer_list.getItemData(z) }
+        @customer_list.connect(SEL_DOUBLECLICKED) { self.customer_info }
 
-        @customer_list.connect(SEL_DOUBLECLICKED) do
-            self.customer_info
-        end
-
-
-        frame2 = FXVerticalFrame.new(mainframe,
-            LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
+        frame2 = FXVerticalFrame.new(mainframe, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         info_btn = FXButton.new(frame2, "Info")
@@ -48,13 +36,8 @@ class Customers < FXMainWindow
         spacer = FXFrame.new(frame2, LAYOUT_FILL_Y)
         search_btn = FXButton.new(frame2, "Search")
 
-        info_btn.connect (SEL_COMMAND) do
-            self.customer_info
-        end
-
-        new_btn.connect (SEL_COMMAND) do
-            self.new_customer
-        end
+        info_btn.connect (SEL_COMMAND) { self.customer_info }
+        new_btn.connect (SEL_COMMAND) { self.new_customer }
 
         delete_btn.connect (SEL_COMMAND) do
             check = FXMessageBox.question(app, MBOX_YES_NO, "Are you sure?", "Are you sure? This can't be undone!")
@@ -66,7 +49,8 @@ class Customers < FXMainWindow
         end
 
         search_btn.connect (SEL_COMMAND) do
-            self.open_search
+            search_win = Search_Window.new(app); search_win.create
+            search_win.connect(SEL_CLOSE) { search_win.close; self.load_customers }
         end
 
         self.load_customers
@@ -77,7 +61,6 @@ class Customers < FXMainWindow
         customers = DB.execute("select lname, fname, rowid, identifier from customers;")
         for i in customers
             active_jobs = DB.execute("select * from jobs where custid == #{i[2]} and active == 1")
-            #name = "#{i[0]}, #{i[1]}  --  #{i[3]}"
             name = "#{i[0]}, #{i[1]}"
             name += "  --  $$" if active_jobs.length > 0
             @customer_list.appendItem(name, nil, i[2])
@@ -92,35 +75,17 @@ class Customers < FXMainWindow
     end
 
     def customer_info
-        win2 = Customer_Jobs.new(app, @custid)
-        win2.create
-        win2.connect(SEL_CLOSE) do
-            win2.close
-            self.load_customers
-        end
+        win2 = Customer_Jobs.new(app, @custid); win2.create
+        win2.connect(SEL_CLOSE) { win2.close; self.load_customers }
     end
 
     def new_customer
-        win2 = Customer_Jobs.new(app, nil)
-        win2.create
-        win2.connect(SEL_CLOSE) do
-            win2.close
-            self.load_customers
-        end
-    end
-
-    def open_search
-        search_win = Search_Window.new(app)
-        search_win.create
-        search_win.connect(SEL_CLOSE) do
-            search_win.close
-            self.load_customers
-        end
+        win2 = Customer_Jobs.new(app, nil); win2.create
+        win2.connect(SEL_CLOSE) { win2.close; self.load_customers }
     end
 
     def create
-        super
-        show(PLACEMENT_SCREEN)
+        super; show(PLACEMENT_SCREEN)
     end
 end
 
@@ -132,17 +97,15 @@ class Customer_Jobs < FXMainWindow
 
         super(app, "Customer: #{@custname}", :width=> 450, :height => 400)
 
-        mainframe = FXVerticalFrame.new(self,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y, 
+        mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y, 
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        row1 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X, 
+        row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X, 
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        column1 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH, 
+        column1 = FXVerticalFrame.new(row1, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH, 
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+
         fname_lbl = FXLabel.new(column1, "First name:")
         lname_lbl = FXLabel.new(column1, "Last name:", :padTop => 7)
         addr_lbl = FXLabel.new(column1, "Address:", :padTop => 7)
@@ -151,9 +114,9 @@ class Customer_Jobs < FXMainWindow
         ph2_lbl = FXLabel.new(column1, "Phone 2:", :padTop => 7)
         email_lbl = FXLabel.new(column1, "E-mail:", :padTop => 7)
 
-        column2 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+
         @fname_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         @lname_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         @addr_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
@@ -161,41 +124,30 @@ class Customer_Jobs < FXMainWindow
         @ph1_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         @ph2_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         @email_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-
         separator = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_GROOVE)
 
-        column3 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH|PACK_UNIFORM_HEIGHT,
+        column3 = FXVerticalFrame.new(row1, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH|PACK_UNIFORM_HEIGHT,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+
         save_btn = FXButton.new(column3, "Save")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
-
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:")
         @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
-        row2 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        column1 = FXVerticalFrame.new(row2,
-            FRAME_SUNKEN|LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        column1 = FXVerticalFrame.new(row2, FRAME_SUNKEN|LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @job_list = FXList.new(column1,
-                    :opts => LAYOUT_FILL|LIST_SINGLESELECT,
-                    :width => 315, :height => 175)
+        @job_list = FXList.new(column1, :opts => LAYOUT_FILL|LIST_SINGLESELECT, :width => 315, :height => 175)
 
-        @job_list.connect(SEL_SELECTED) do |x, y, z|
-            @jobid = @job_list.getItemData(z)
-        end
+        @job_list.connect(SEL_SELECTED) { |x, y, z| @jobid = @job_list.getItemData(z) }
 
-        @job_list.connect(SEL_DOUBLECLICKED) do
-            self.edit_job
-        end
+        @job_list.connect(SEL_DOUBLECLICKED) { self.edit_job(@jobid) }
 
-        column2 = FXVerticalFrame.new(row2,
-            LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
+        column2 = FXVerticalFrame.new(row2, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         new_btn = FXButton.new(column2, "New")
@@ -209,17 +161,11 @@ class Customer_Jobs < FXMainWindow
         active_button.disable if @custid == nil
         delete_button.disable if @custid == nil
 
-        new_btn.connect (SEL_COMMAND) do
-            self.new_job
-        end
+        new_btn.connect (SEL_COMMAND) { self.edit_job(nil) }
 
-        edit_btn.connect (SEL_COMMAND) do
-            self.edit_job(@jobid)
-        end
+        edit_btn.connect (SEL_COMMAND) { self.edit_job(@jobid) }
 
-        save_btn.connect (SEL_COMMAND) do
-            self.save_custie
-        end
+        save_btn.connect (SEL_COMMAND) { self.save_custie }
 
         active_button.connect (SEL_COMMAND) do
             DB.execute("update jobs set active = NOT active where rowid == #{@jobid};")
@@ -242,9 +188,7 @@ class Customer_Jobs < FXMainWindow
         return if @custid == nil
         fields = [@fname_txt, @lname_txt, @addr_txt, @ph1_txt, @ph2_txt, @email_txt, @cityzip_txt, @custid_txt]
         info = DB.execute("select fname, lname, addr, ph1, ph2, email, cityzip, identifier from customers where rowid == #{@custid};")[0]
-        for x in 0..7 do
-            fields[x].setText(info[x], true)
-        end
+        (0..7).each { |x| fields[x].setText(info[x], true) }
     end
 
     def save_custie
@@ -253,9 +197,7 @@ class Customer_Jobs < FXMainWindow
         if @custid == nil
             DB.execute("insert into customers (fname, lname, addr, ph1, ph2, email, cityzip, identifier) values ('#{@fname_txt}', '#{@lname_txt}', '#{@addr_txt}', '#{@ph1_txt}', '#{@ph2_txt}', '#{@email_txt}', '#{@cityzip_txt}', '#{@custid_txt}');")
         else
-            for x, y in fields
-                DB.execute("update customers set #{x} = '#{y}' where rowid == #{@custid};")
-            end
+            fields.each { |x, y| DB.execute("update customers set #{x} = '#{y}' where rowid == #{@custid};") }
         end
         self.close(true)
     end
@@ -278,27 +220,13 @@ class Customer_Jobs < FXMainWindow
         end
     end
 
-    def new_job
-        job_win = Job_Edit.new(app, @custid, nil)
-        job_win.create
-        job_win.connect(SEL_CLOSE) do
-            job_win.close
-            self.load_jobs
-        end
-    end
-
     def edit_job(job)
-        job_win = Job_Edit.new(app, @custid, job)
-        job_win.create
-        job_win.connect(SEL_CLOSE) do
-            job_win.close
-            self.load_jobs
-        end
+        job_win = Job_Edit.new(app, @custid, job); job_win.create
+        job_win.connect(SEL_CLOSE) { job_win.close; self.load_jobs }
     end
 
     def create
-        super
-        show(PLACEMENT_SCREEN)
+        super; show(PLACEMENT_SCREEN)
     end
 end
 
@@ -310,27 +238,24 @@ class Job_Edit < FXMainWindow
 
         super(app, "Edit Job", :width=> 350, :height => 300)
 
-        mainframe = FXVerticalFrame.new(self,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        row1 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X,
+        row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
         
-        column1 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        column1 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 3)
         desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 6)
 
-        column2 = FXVerticalFrame.new(row1,
-            LAYOUT_FILL_X,
+        column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
-        subrow = FXHorizontalFrame.new(column2,
-            LAYOUT_FILL_X,
+
+        subrow = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+
         name_lbl = FXLabel.new(subrow, @custname)
         spacer = FXFrame.new(subrow, LAYOUT_FILL_X)
         jobid_lbl = FXLabel.new(subrow, "Job ID:", :padTop => 3)
@@ -338,20 +263,17 @@ class Job_Edit < FXMainWindow
 
         @desc_txt = FXTextField.new(column2, 30, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
-        midrow = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
+        midrow = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+
         notes_lbl = FXLabel.new(midrow, "Notes:")
         spacer = FXFrame.new(midrow, LAYOUT_FILL_X)
         @active_chk = FXCheckButton.new(midrow, "Active?")
         btn_save = FXButton.new(midrow, "Save")
 
-        btn_save.connect (SEL_COMMAND) do
-            self.save_job_info
-        end
+        btn_save.connect (SEL_COMMAND) { self.save_job_info }
 
-        row2 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL|FRAME_SUNKEN,
+        row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
         @notes_box = FXText.new(row2, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
 
@@ -359,16 +281,12 @@ class Job_Edit < FXMainWindow
     end
 
     def load_job_info
-        return @active_chk.setCheck(true) if @jobid == nil
+        @active_chk.setCheck(true); return if @jobid == nil
         info = DB.execute("select desc, notes, active, identifier from jobs where rowid == #{@jobid};")[0]
         @desc_txt.setText(info[0], true)
         @notes_box.setText(info[1], true)
         @jobid_txt.setText(info[3], true)
-        if info[2] == 1
-            @active_chk.setCheck(true)
-        else
-            @active_chk.setCheck(false)
-        end
+        @active_chk.setCheck(false) if info[2] == 0
     end
 
     def save_job_info
@@ -389,8 +307,7 @@ class Job_Edit < FXMainWindow
 
 
     def create
-        super
-        show(PLACEMENT_SCREEN)
+        super; show(PLACEMENT_SCREEN)
     end
 
 end
@@ -399,14 +316,10 @@ class Search_Window < FXMainWindow
     def initialize(app)
         super(app, "Search", :width=> 350, :height => 300)
 
-        #PACK_UNIFORM_WIDTH
-
-        mainframe = FXVerticalFrame.new(self,
-            LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
         
-        row1 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
+        row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         @which_search = FXDataTarget.new(0)
@@ -417,30 +330,22 @@ class Search_Window < FXMainWindow
         active_btn = FXRadioButton.new(row1, "Active Jobs", @which_search, FXDataTarget::ID_OPTION + 2)
         spacer = FXHorizontalFrame.new(row1, LAYOUT_FILL_X)
 
-        row2 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL_X,
+        row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         @search_txt = FXTextField.new(row2, 20, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         search_btn = FXButton.new(row2, "Search")
 
-        row3 = FXHorizontalFrame.new(mainframe,
-            LAYOUT_FILL|FRAME_SUNKEN,
+        row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         @results_list = FXList.new(row3, :opts => LAYOUT_FILL|LIST_SINGLESELECT)
 
-        @results_list.connect(SEL_SELECTED) do |x, y, z|
-            @which_result = @results_list.getItemData(z)
-        end
+        @results_list.connect(SEL_SELECTED) { |x, y, z| @which_result = @results_list.getItemData(z) }
 
-        @results_list.connect(SEL_DOUBLECLICKED) do
-            self.results_info
-        end
+        @results_list.connect(SEL_DOUBLECLICKED) { self.results_info }
 
-        search_btn.connect (SEL_COMMAND) do
-            self.search_items
-        end
+        search_btn.connect (SEL_COMMAND) { self.search_items }
     end
 
     def search_items
@@ -455,7 +360,7 @@ class Search_Window < FXMainWindow
             end
 
             if results.length > 0
-                results.each { |i| @results_list.appendItem("#{i[1]}, #{i[0]}  --  (#{i[2]})", nil, i[3]) }
+                results.each { |i| @results_list.appendItem("#{i[1]}, #{i[0]}  --  #{i[2]}", nil, [i[3], nil]) }
             else
                 @results_list.appendItem("No results.")
             end
@@ -477,6 +382,7 @@ class Search_Window < FXMainWindow
             else
                 @results_list.appendItem("No results.")
             end
+
         elsif @which_search.value == 2
             begin
                 results = DB.execute("select custid, desc, rowid from jobs where active == 1;")
@@ -499,10 +405,10 @@ class Search_Window < FXMainWindow
     def results_info
         return if @which_result == nil
 
-        if @which_search.value == 0
-            info_win = Customer_Jobs.new(app, @which_result)
+        if @which_result[1] == nil
+            info_win = Customer_Jobs.new(app, @which_result[0])
             info_win.create
-        elsif @which_search.value == 1 or @which_search.value == 2
+        else
             info_win = Customer_Jobs.new(app, @which_result[0])
             info_win.create
             info_win.edit_job(@which_result[1])
@@ -510,8 +416,7 @@ class Search_Window < FXMainWindow
     end
 
     def create
-        super
-        show(PLACEMENT_SCREEN)
+        super; show(PLACEMENT_SCREEN)
     end
 
 end
