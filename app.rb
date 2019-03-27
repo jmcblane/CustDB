@@ -110,6 +110,7 @@ class Customers < FXMainWindow
         info_win = Customer_Jobs.new(app, @which_result[0])
         info_win.create
         info_win.edit_job(@which_result[1]) if @which_result[1] != nil
+        info_win.connect (SEL_CLOSE) { info_win.close; self.search_items }
     end
 
     def load_customers
@@ -132,8 +133,7 @@ class Customers < FXMainWindow
 
     def new_customer
         win2 = Customer_Jobs.new(app, nil); win2.create
-        # win2.connect(SEL_CLOSE) { win2.close; self.load_customers }
-        # Not great since we merged the boxes into one.
+        win2.connect(SEL_CLOSE) { win2.close; self.search_items }
     end
 
     def create
@@ -285,12 +285,21 @@ class Customer_Jobs < FXMainWindow
 
     def edit_job(job)
         job_win = Job_Edit.new(app, @custid, job); job_win.create
-        job_win.connect(SEL_CLOSE) { job_win.close; self.load_jobs }
+        job_win.connect(SEL_CLOSE) do
+            job_win.close
+            begin
+                self.load_jobs
+            rescue
+                puts "=> Rescue from line 292 in edit_job:"
+                puts "   Parent closed before child."
+            end
+        end
     end
 
     def create
         super; show(PLACEMENT_SCREEN)
     end
+
 end
 
 class Job_Edit < FXMainWindow
