@@ -365,36 +365,21 @@ class Search_Window < FXMainWindow
                 @results_list.appendItem("No results.")
             end
 
-        elsif @which_search.value == 1
+        elsif @which_search.value == 1 or @which_search.value == 2
             begin
-                results = DB.execute("select custid, desc, active, rowid from jobs where jobs match '#{@search_txt}';")
+                results = DB.execute("select custid, desc, active, rowid from jobs where jobs match '#{@search_txt}';") if @which_search.value == 1
+                results = DB.execute("select custid, desc, active, rowid from jobs where active == 1;") if @which_search.value == 2
             rescue
                 results = []
-            end
-            if results.length > 0
-                for i in results
-                    customer = DB.execute("select fname, lname from customers where rowid == #{i[0]};")[0]
-                    name = "#{customer[1]}, #{customer[0]}"
-                    desc = i[1] if i[2] == 0
-                    desc = "#{i[1]} -- $$" if i[2] == 1
-                    @results_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[3]])
-                end
-            else
-                @results_list.appendItem("No results.")
             end
 
-        elsif @which_search.value == 2
-            begin
-                results = DB.execute("select custid, desc, rowid from jobs where active == 1;")
-            rescue
-                results = []
-            end
             if results.length > 0
                 for i in results
                     customer = DB.execute("select fname, lname from customers where rowid == #{i[0]};")[0]
                     name = "#{customer[1]}, #{customer[0]}"
                     desc = i[1]
-                    @results_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[2]])
+                    desc = "#{i[1]} -- $$" if @which_search.value == 1 and i[2] == 1
+                    @results_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[3]])
                 end
             else
                 @results_list.appendItem("No results.")
