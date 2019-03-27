@@ -8,5 +8,5 @@ Requires [FXRuby](https://rubygems.org/gems/fxruby/versions/1.6.33) and [SQLite3
 ## Screenshot
 ![screenshot](screenshot.png)
 
-## Experimental unified branch
+## Experimental unified branch interface
 ![unified](alternate.png)
