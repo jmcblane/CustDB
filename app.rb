@@ -349,6 +349,10 @@ class Search_Window < FXMainWindow
     end
 
     def search_items
+        # Should be able to condense this code down considerably.
+        # Let's work on consolidating the last two elsif statements into one.
+        #
+
         return if @search_txt.text == "*"
         @results_list.clearItems
 
@@ -404,15 +408,9 @@ class Search_Window < FXMainWindow
 
     def results_info
         return if @which_result == nil
-
-        if @which_result[1] == nil
-            info_win = Customer_Jobs.new(app, @which_result[0])
-            info_win.create
-        else
-            info_win = Customer_Jobs.new(app, @which_result[0])
-            info_win.create
-            info_win.edit_job(@which_result[1])
-        end
+        info_win = Customer_Jobs.new(app, @which_result[0])
+        info_win.create
+        info_win.edit_job(@which_result[1]) if @which_result[1] != nil
     end
 
     def create
