@@ -7,14 +7,14 @@ include Fox
 if File.exists?("./customers.db") == false
     db = SQLite3::Database.new "./customers.db"
     db.execute("create virtual table customers using fts5(fname, lname, addr, ph1, ph2, email, cityzip, identifier);")
-    db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier);")
+    db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier, price unindexed, intake unindexed);")
 end
     
 DB = SQLite3::Database.new "./customers.db"
 
 class Customers < FXMainWindow
     def initialize(app)
-        super(app, "Customer Database", :width => 300, :height => 400)
+        super(app, "Customer Database", :width => 400, :height => 400)
 
         mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -35,6 +35,9 @@ class Customers < FXMainWindow
 
         @search_txt = FXTextField.new(row2, 20, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2)
+
+        @search_txt.connect (SEL_COMMAND) { |x| self.search_items }
+            
 
         row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -62,7 +65,8 @@ class Customers < FXMainWindow
         info_btn.connect (SEL_COMMAND) { self.results_info }
         new_btn.connect (SEL_COMMAND) { self.new_customer }
 
-        self.load_customers
+        @which_search.value = 2
+        self.search_items
     end
 
     def search_items
@@ -85,8 +89,8 @@ class Customers < FXMainWindow
 
         elsif @which_search.value == 1 or @which_search.value == 2
             begin
-                results = DB.execute("select custid, desc, active, rowid from jobs where jobs match '#{@search_txt}';") if @which_search.value == 1
-                results = DB.execute("select custid, desc, active, rowid from jobs where active == 1;") if @which_search.value == 2
+                results = DB.execute("select custid, desc, active, rowid, intake, price from jobs where jobs match '#{@search_txt}';") if @which_search.value == 1
+                results = DB.execute("select custid, desc, active, rowid, intake, price from jobs where active == 1;") if @which_search.value == 2
             rescue
                 results = []
             end
@@ -94,10 +98,9 @@ class Customers < FXMainWindow
             if results.length > 0
                 for i in results
                     customer = DB.execute("select fname, lname from customers where rowid == #{i[0]};")[0]
-                    name = "#{customer[1]}, #{customer[0]}"
                     desc = i[1]
-                    desc = "#{i[1]} -- $$" if @which_search.value == 1 and i[2] == 1
-                    @customers_list.appendItem("#{name}  --  #{desc}", nil, [i[0], i[3]])
+                    desc = "[#{i[4]}] [$#{i[5]}] " + desc if i[2] == 1
+                    @customers_list.appendItem("#{desc}", nil, [i[0], i[3]])
                 end
             else
                 @customers_list.appendItem("No results.")
@@ -268,11 +271,11 @@ class Customer_Jobs < FXMainWindow
     def load_jobs
         return if @custid == nil
         @job_list.clearItems
-        jobs = DB.execute("select desc, rowid, active, identifier from jobs where custid == #{@custid};")
+        jobs = DB.execute("select desc, rowid, active, identifier, intake, price from jobs where custid == #{@custid};")
         jobs.reverse!
         for i in jobs
-            desc = "#{i[3]}  --  #{i[0]}"
-            desc += "  --  $$" if i[2] == 1
+            desc = "#{i[0]}"
+            desc = "[#{i[4]}] [$#{i[5]}] " + desc if i[2] == 1
             @job_list.appendItem(desc, nil, i[1])
         end
         if @job_list.numItems > 0
@@ -319,52 +322,62 @@ class Job_Edit < FXMainWindow
         column1 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 3)
+        intake_lbl = FXLabel.new(column1, "Intake Date:")
+        fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 5)
         desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 6)
+        cost_lbl = FXLabel.new(column1, "Job price:")
 
         column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        subrow = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
+        row2 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        name_lbl = FXLabel.new(subrow, @custname)
-        spacer = FXFrame.new(subrow, LAYOUT_FILL_X)
-        jobid_lbl = FXLabel.new(subrow, "Job ID:", :padTop => 3)
-        @jobid_txt = FXTextField.new(subrow, 7)
+        @intake_txt = FXTextField.new(row2, 11)
+        spacer = FXFrame.new(row2, LAYOUT_FILL_X)
+        jobid_lbl = FXLabel.new(row2, "Job ID:", :padTop => 3)
+        @jobid_txt = FXTextField.new(row2, 7)
 
+        row3 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+
+        name_lbl = FXLabel.new(row3, @custname)
         @desc_txt = FXTextField.new(column2, 30, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
 
-        midrow = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
-            :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+        row4 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        notes_lbl = FXLabel.new(midrow, "Notes:")
-        spacer = FXFrame.new(midrow, LAYOUT_FILL_X)
-        @active_chk = FXCheckButton.new(midrow, "Active?")
-        btn_save = FXButton.new(midrow, "Save")
+        @price_txt = FXTextField.new(row4, 7)
+
+        spacer = FXFrame.new(row4, LAYOUT_FILL_X)
+        @active_chk = FXCheckButton.new(row4, "Active?")
+        btn_save = FXButton.new(row4, "Save")
 
         btn_save.connect (SEL_COMMAND) { self.save_job_info }
 
-        row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
+        row5 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
-        @notes_box = FXText.new(row2, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
+        @notes_box = FXText.new(row5, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
 
         self.load_job_info
     end
 
     def load_job_info
-        @active_chk.setCheck(true); return if @jobid == nil
-        info = DB.execute("select desc, notes, active, identifier from jobs where rowid == #{@jobid};")[0]
+        @active_chk.setCheck(true)
+        @intake_txt.setText("#{Time.now.strftime('%m/%d/%y')}", true); return if @jobid == nil
+        info = DB.execute("select desc, notes, active, identifier, intake, price from jobs where rowid == #{@jobid};")[0]
         @desc_txt.setText(info[0], true)
         @notes_box.setText(info[1], true)
         @jobid_txt.setText(info[3], true)
+        @intake_txt.setText(info[4], true)
+        @price_txt.setText(info[5], true)
         @active_chk.setCheck(false) if info[2] == 0
     end
 
     def save_job_info
-        fields = {"desc" => @desc_txt, "notes" => @notes_box, "active" => @active_chk.checkState, "identifier" => @jobid_txt}
+        fields = {"desc" => @desc_txt, "notes" => @notes_box, "active" => @active_chk.checkState, "identifier" => @jobid_txt, "intake" => @intake_txt, "price" => @price_txt}
         if @jobid == nil
-            DB.execute("insert into jobs (custid, desc, notes, active, identifier) values (#{@custid}, '#{@desc_txt}', '#{@notes_box}', #{@active_chk.checkState}, '#{@jobid_txt}');")
+            DB.execute("insert into jobs (custid, desc, notes, active, identifier, intake, price) values (#{@custid}, '#{@desc_txt}', '#{@notes_box}', #{@active_chk.checkState}, '#{@jobid_txt}', '#{@intake_txt}', '#{@price_txt}');")
         else
             for x, y in fields
                 if x == "active"
