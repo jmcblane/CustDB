@@ -36,7 +36,8 @@ class Customers < FXMainWindow
         @search_txt = FXTextField.new(row2, 20, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2)
 
-        @search_txt.connect (SEL_COMMAND) { |x| self.search_items }
+        @search_txt.connect (SEL_COMMAND) { self.search_items }
+        @search_txt.connect (SEL_CHANGED) { self.search_items }
             
 
         row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
@@ -75,10 +76,11 @@ class Customers < FXMainWindow
         return if @search_txt.text == "*"
         return self.load_customers if @search_txt.text == "" and @which_search.value == 0
         @customers_list.clearItems
+        return @customers_list.appendItem("No results.") if @search_txt.text == "" and @which_search.value == 1
 
         if @which_search.value == 0
             begin
-                results = DB.execute("select fname, lname, ph1, rowid from customers where customers match '#{@search_txt}';")
+                results = DB.execute("select fname, lname, ph1, rowid from customers where customers match '#{@search_txt}*';")
             rescue
                 results = []
             end
@@ -91,7 +93,7 @@ class Customers < FXMainWindow
 
         elsif @which_search.value == 1 or @which_search.value == 2
             begin
-                results = DB.execute("select custid, desc, active, rowid, intake, price from jobs where jobs match '#{@search_txt}';") if @which_search.value == 1
+                results = DB.execute("select custid, desc, active, rowid, intake, price from jobs where jobs match '#{@search_txt}*';") if @which_search.value == 1
                 results = DB.execute("select custid, desc, active, rowid, intake, price from jobs where active == 1;") if @which_search.value == 2
             rescue
                 results = []
