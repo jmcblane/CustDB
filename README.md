@@ -8,4 +8,3 @@ Requires [FXRuby](https://rubygems.org/gems/fxruby/versions/1.6.33) and [SQLite3
 Uses a different main screen. The rest is the same.
 
 ![unified](alternate.png)
-![screenshot](screenshot.png)
