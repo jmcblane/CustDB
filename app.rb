@@ -139,8 +139,8 @@ class Customers < FXMainWindow
     end
 
     def new_customer
-        win2 = Customer_Jobs.new(app, nil); win2.create
-        win2.connect(SEL_CLOSE) { win2.close; self.search_items if @which_search.value == 0 }
+        new_win = Customer_Jobs.new(app, nil); new_win.create
+        new_win.connect(SEL_CLOSE) { new_win.close; self.search_items if @which_search.value == 0 }
     end
 
     def create
@@ -150,6 +150,7 @@ end
 
 class Customer_Jobs < FXMainWindow
     def initialize(app, custid)
+        @app = app
         @custid = custid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ") if @custid != nil
         @custname = "NEW CUSTOMER" if @custid == nil
@@ -269,7 +270,14 @@ class Customer_Jobs < FXMainWindow
         else
             fields.each { |x, y| DB.execute("update customers set #{x} = '#{y}' where rowid == #{@custid};") }
         end
-        self.close(true)
+
+        if @custid == nil
+            self.close(true)
+            custid = DB.execute("select rowid from customers order by rowid desc limit 1;")[0][0]
+            edit_win = Customer_Jobs.new(@app, custid); edit_win.create
+        else
+            self.close(true)
+        end
     end
 
     def load_jobs
