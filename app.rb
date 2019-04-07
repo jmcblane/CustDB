@@ -65,6 +65,8 @@ class Customers < FXMainWindow
         info_btn.connect (SEL_COMMAND) { self.results_info }
         new_btn.connect (SEL_COMMAND) { self.new_customer }
 
+        @which_search.connect (SEL_COMMAND) { self.search_items }
+
         @which_search.value = 2
         self.search_items
     end
@@ -136,7 +138,7 @@ class Customers < FXMainWindow
 
     def new_customer
         win2 = Customer_Jobs.new(app, nil); win2.create
-        win2.connect(SEL_CLOSE) { win2.close; self.search_items }
+        win2.connect(SEL_CLOSE) { win2.close; self.search_items if @which_search.value == 0 }
     end
 
     def create
