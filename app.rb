@@ -2,6 +2,7 @@
 
 require 'sqlite3'
 require 'fox16'
+require 'fileutils'
 include Fox
 
 if File.exists?("./customers.db") == false
@@ -9,8 +10,16 @@ if File.exists?("./customers.db") == false
     db.execute("create virtual table customers using fts5(fname, lname, addr, ph1, ph2, email, cityzip, identifier);")
     db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier, price unindexed, intake unindexed);")
 end
+
+FileUtils.mkdir("microscope") if File.exists?("./microscope") == false
     
 DB = SQLite3::Database.new "./customers.db"
+
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+end
 
 class Customers < FXMainWindow
     def initialize(app)
@@ -191,6 +200,7 @@ class Customer_Jobs < FXMainWindow
         save_btn = FXButton.new(column3, "Save")
         delete_btn = FXButton.new(column3, "Delete")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
+        fold_btn = FXButton.new(column3, "Open Folder")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:")
         @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
@@ -203,6 +213,8 @@ class Customer_Jobs < FXMainWindow
             end
             self.close(true)
         end
+
+        fold_btn.connect (SEL_COMMAND) { self.open_dir }
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -222,12 +234,15 @@ class Customer_Jobs < FXMainWindow
         new_btn = FXButton.new(column2, "New")
         edit_btn = FXButton.new(column2, "Edit")
         active_button = FXButton.new(column2, "Active")
+        scope_btn = FXButton.new(column2, "Add Images")
+        spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
         delete_button = FXButton.new(column2, "Delete")
         spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
 
         new_btn.disable if @custid == nil
         edit_btn.disable if @custid == nil
         active_button.disable if @custid == nil
+        scope_btn.disable if @custid == nil
         delete_button.disable if @custid == nil
         delete_btn.disable if @custid == nil
 
@@ -241,6 +256,8 @@ class Customer_Jobs < FXMainWindow
             DB.execute("update jobs set active = NOT active where rowid == #{@jobid};")
             self.load_jobs
         end
+
+        scope_btn.connect(SEL_COMMAND) { self.open_scope }
 
         delete_button.connect (SEL_COMMAND) do
             check = FXMessageBox.question(app, MBOX_YES_NO, "Are you sure?", "Are you sure? This can't be undone!")
@@ -301,6 +318,21 @@ class Customer_Jobs < FXMainWindow
                 puts "   Parent closed before child."
             end
         end
+    end
+
+    def open_dir
+        directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
+        FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
+        system("explorer #{directory}") if OS.windows? == true
+        system("xdg-open #{directory} &!") if OS.windows? == false
+    end
+
+    def open_scope
+        directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
+        FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
+        FileUtils.rm("microscope/customer_link") if File.exists?("microscope/customer_link")
+        FileUtils.ln_s("#{@lname_txt.text}_#{@fname_txt.text}", "microscope/customer_link")
+        system("start microscope/dv.exe.lnk") if OS.windows? == true
     end
 
     def create
