@@ -49,7 +49,7 @@ class Customers < FXMainWindow
         @search_txt.connect (SEL_CHANGED) { self.search_items }
             
 
-        row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
+        row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_HEIGHT|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         spacer = FXFrame.new(row3, LAYOUT_FILL_X)
@@ -57,6 +57,10 @@ class Customers < FXMainWindow
         spacer = FXFrame.new(row3, LAYOUT_FILL_X)
         new_btn = FXButton.new(row3, "New", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5)
         spacer = FXFrame.new(row3, LAYOUT_FILL_X)
+        fold_btn = FXButton.new(row3, "Images")
+        spacer = FXHorizontalFrame.new(row3, LAYOUT_FILL_X)
+
+        fold_btn.connect (SEL_COMMAND) { system("explorer microscope") if OS.windows? == true }
 
         row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
@@ -200,7 +204,6 @@ class Customer_Jobs < FXMainWindow
         save_btn = FXButton.new(column3, "Save")
         delete_btn = FXButton.new(column3, "Delete")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
-        fold_btn = FXButton.new(column3, "Open Folder")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:")
         @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
@@ -214,7 +217,6 @@ class Customer_Jobs < FXMainWindow
             self.close(true)
         end
 
-        fold_btn.connect (SEL_COMMAND) { self.open_dir }
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -318,12 +320,6 @@ class Customer_Jobs < FXMainWindow
                 puts "   Parent closed before child."
             end
         end
-    end
-
-    def open_dir
-        directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
-        FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
-        system("explorer C:/CustDB/#{directory}") if OS.windows? == true
     end
 
     def open_scope
