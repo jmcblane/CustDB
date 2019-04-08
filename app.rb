@@ -323,16 +323,17 @@ class Customer_Jobs < FXMainWindow
     def open_dir
         directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
         FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
-        system("explorer #{directory}") if OS.windows? == true
-        system("xdg-open #{directory} &!") if OS.windows? == false
+        system("explorer C:/CustDB/#{directory}") if OS.windows? == true
     end
 
     def open_scope
         directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
         FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
-        FileUtils.rm("microscope/customer_link") if File.exists?("microscope/customer_link")
-        FileUtils.ln_s("#{@lname_txt.text}_#{@fname_txt.text}", "microscope/customer_link")
-        system("start microscope/dv.exe.lnk") if OS.windows? == true
+        if OS.windows? == true
+            FileUtils.mv(directory, "microscope/Customer")
+            a = `start /wait microscope/dv.exe.lnk`
+            FileUtils.mv("microscope/Customer", directory)
+        end
     end
 
     def create
