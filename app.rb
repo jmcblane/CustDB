@@ -60,27 +60,40 @@ class Customers < FXMainWindow
         custie_btn = FXRadioButton.new(row1, "Customers", @which_search, FXDataTarget::ID_OPTION)
         job_btn = FXRadioButton.new(row1, "Jobs", @which_search, FXDataTarget::ID_OPTION + 1)
         active_btn = FXRadioButton.new(row1, "Active Jobs", @which_search, FXDataTarget::ID_OPTION + 2)
-        spacer = FXHorizontalFrame.new(row1, LAYOUT_FILL_X)
+        spacer2 = FXHorizontalFrame.new(row1, LAYOUT_FILL_X)
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        @search_txt = FXTextField.new(row2, 20, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2)
+        @search_txt = FXTextField.new(row2, 20, :opts => LAYOUT_FILL_X)
+        search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2, :opts => JUSTIFY_NORMAL)
 
         row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_HEIGHT|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        spacer = FXFrame.new(row3, LAYOUT_FILL_X)
-        info_btn = FXButton.new(row3, "Info", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5)
-        spacer = FXFrame.new(row3, LAYOUT_FILL_X)
-        new_btn = FXButton.new(row3, "New", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5)
-        spacer = FXFrame.new(row3, LAYOUT_FILL_X)
+        spacer3 = FXFrame.new(row3, LAYOUT_FILL_X)
+        info_btn = FXButton.new(row3, "Info", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5, :opts => JUSTIFY_NORMAL)
+        spacer4 = FXFrame.new(row3, LAYOUT_FILL_X)
+        new_btn = FXButton.new(row3, "New", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5, :opts => JUSTIFY_NORMAL)
+        spacer5 = FXFrame.new(row3, LAYOUT_FILL_X)
 
-        row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
+        row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         @customers_list = FXList.new(row4, :opts => LAYOUT_FILL|LIST_SINGLESELECT)
+
+        # -------
+        # COLORS
+        # -------
+
+        for i in [ mainframe, row1, row2, row3, row4, spacer, spacer2, spacer3, spacer4, spacer5, custie_btn, job_btn, active_btn, search_btn, info_btn, new_btn ]
+            i.backColor=FXRGB(9,78,147)
+        end
+
+        for i in [ search_btn, info_btn, new_btn, @search_txt, @customers_list ]
+            i.backColor=FXRGB(98,150,65)
+        end
+
 
 
     #------------------
@@ -227,55 +240,66 @@ class Customer_Jobs < FXMainWindow
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         fname_lbl = FXLabel.new(column1, "First name:")
-        lname_lbl = FXLabel.new(column1, "Last name:", :padTop => 7)
-        addr_lbl = FXLabel.new(column1, "Address:", :padTop => 7)
-        cityzip_lbl = FXLabel.new(column1, "City, Zip:", :padTop => 7)
-        ph1_lbl = FXLabel.new(column1, "Phone 1:", :padTop => 7)
-        ph2_lbl = FXLabel.new(column1, "Phone 2:", :padTop => 7)
-        email_lbl = FXLabel.new(column1, "E-mail:", :padTop => 7)
+        lname_lbl = FXLabel.new(column1, "Last name:")
+        addr_lbl = FXLabel.new(column1, "Address:")
+        cityzip_lbl = FXLabel.new(column1, "City, Zip:")
+        ph1_lbl = FXLabel.new(column1, "Phone 1:")
+        ph2_lbl = FXLabel.new(column1, "Phone 2:")
+        email_lbl = FXLabel.new(column1, "E-mail:")
 
         column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        @fname_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @lname_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @addr_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @cityzip_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @ph1_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @ph2_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        @email_txt = FXTextField.new(column2, 26, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-        separator = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_GROOVE)
+        @fname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @lname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @addr_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @cityzip_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @ph1_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @ph2_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @email_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        separator = FXSeparator.new(mainframe, LAYOUT_FILL_X)
 
         column3 = FXVerticalFrame.new(row1, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH|PACK_UNIFORM_HEIGHT,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        save_btn = FXButton.new(column3, "Save")
-        delete_cust = FXButton.new(column3, "Delete")
-        spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
-        fold_btn = FXButton.new(column3, "Folder")
-        spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
-        id_lbl = FXLabel.new(column3, "Cust ID:")
-        @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
+        save_btn = FXButton.new(column3, "Save", :opts => JUSTIFY_NORMAL)
+        delete_cust = FXButton.new(column3, "Delete", :opts => JUSTIFY_NORMAL)
+        spacer1 = FXFrame.new(column3, LAYOUT_FILL_Y)
+        fold_btn = FXButton.new(column3, "Folder", :opts => JUSTIFY_NORMAL)
+        spacer2 = FXFrame.new(column3, LAYOUT_FILL_Y)
+        id_lbl = FXLabel.new(column3, "Cust ID:", :opts => JUSTIFY_NORMAL)
+        @custid_txt = FXTextField.new(column3, 7, :opts => LAYOUT_FILL_X)
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        column1 = FXVerticalFrame.new(row2, FRAME_SUNKEN|LAYOUT_FILL_X|LAYOUT_FILL_Y,
+        column4 = FXVerticalFrame.new(row2, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @job_list = FXList.new(column1, :opts => LAYOUT_FILL|LIST_SINGLESELECT, :width => 315, :height => 175)
+        @job_list = FXList.new(column4, :opts => LAYOUT_FILL|LIST_SINGLESELECT, :width => 315, :height => 175)
 
-        column2 = FXVerticalFrame.new(row2, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
+        column5 = FXVerticalFrame.new(row2, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        new_btn = FXButton.new(column2, "New")
-        edit_btn = FXButton.new(column2, "Edit")
-        active_button = FXButton.new(column2, "Active")
-        scope_btn = FXButton.new(column2, "Add Images")
-        spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
-        delete_job = FXButton.new(column2, "Delete")
-        spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
+        new_btn = FXButton.new(column5, "New", :opts => JUSTIFY_NORMAL)
+        edit_btn = FXButton.new(column5, "Edit", :opts => JUSTIFY_NORMAL)
+        active_button = FXButton.new(column5, "Active", :opts => JUSTIFY_NORMAL)
+        scope_btn = FXButton.new(column5, "Add Images", :opts => JUSTIFY_NORMAL)
+        spacer3 = FXFrame.new(column5, LAYOUT_FILL_Y)
+        delete_job = FXButton.new(column5, "Delete", :opts => JUSTIFY_NORMAL)
+        spacer4 = FXFrame.new(column5, LAYOUT_FILL_Y)
 
+        # -------
+        # COLORS
+        # -------
+
+        for i in [ mainframe, row1, row2, column1, column2, column3, column4, column5, separator, spacer1, spacer2, spacer3, spacer4, fname_lbl, lname_lbl, addr_lbl, cityzip_lbl, ph1_lbl, ph2_lbl, email_lbl, id_lbl ]
+            i.backColor = FXRGB(9,78,147)
+        end
+
+        for i in [ @fname_txt, @lname_txt, @addr_txt, @cityzip_txt, @ph1_txt, @ph2_txt, @email_txt, save_btn, delete_cust, fold_btn, @custid_txt, @job_list, new_btn, edit_btn, active_button, scope_btn, delete_job ]
+            i.backColor = FXRGB(98,150,65)
+        end
 
     #------------------
     #  FUNCTIONALITY
@@ -448,29 +472,41 @@ class Job_Edit < FXMainWindow
         row2 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @intake_txt = FXTextField.new(row2, 11)
-        spacer = FXFrame.new(row2, LAYOUT_FILL_X)
+        @intake_txt = FXTextField.new(row2, 11, :opts => 0)
+        spacer1 = FXFrame.new(row2, LAYOUT_FILL_X)
         jobid_lbl = FXLabel.new(row2, "Job ID:", :padTop => 3)
-        @jobid_txt = FXTextField.new(row2, 7)
+        @jobid_txt = FXTextField.new(row2, 7, :opts => 0)
 
         row3 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         name_lbl = FXLabel.new(row3, @custname)
-        @desc_txt = FXTextField.new(column2, 30, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
+        @desc_txt = FXTextField.new(column2, 30, :opts => LAYOUT_FILL_X)
 
         row4 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @price_txt = FXTextField.new(row4, 7)
+        @price_txt = FXTextField.new(row4, 7, :opts => 0)
 
-        spacer = FXFrame.new(row4, LAYOUT_FILL_X)
+        spacer2 = FXFrame.new(row4, LAYOUT_FILL_X)
         @active_chk = FXCheckButton.new(row4, "Active?")
-        btn_save = FXButton.new(row4, "Save")
+        btn_save = FXButton.new(row4, "Save", :opts => JUSTIFY_NORMAL)
 
-        row5 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
+        row5 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
         @notes_box = FXText.new(row5, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
+
+        # -------
+        # COLORS
+        # -------
+
+        for i in [ mainframe, row1, row2, row3, row4, row5, column1, column2, spacer1, spacer2, intake_lbl, fname_lbl, desc_lbl, cost_lbl, jobid_lbl, name_lbl, @active_chk ]
+            i.backColor = FXRGB(9,78,147)
+        end
+
+        for i in [ @intake_txt, @jobid_txt, @desc_txt, @price_txt, @notes_box, btn_save, name_lbl ]
+            i.backColor = FXRGB(98,150,65)
+        end
 
 
     #------------------
