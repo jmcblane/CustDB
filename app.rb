@@ -76,8 +76,6 @@ class Customers < FXMainWindow
         spacer = FXFrame.new(row3, LAYOUT_FILL_X)
         new_btn = FXButton.new(row3, "New", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5)
         spacer = FXFrame.new(row3, LAYOUT_FILL_X)
-        fold_btn = FXButton.new(row3, "Images")
-        spacer = FXHorizontalFrame.new(row3, LAYOUT_FILL_X)
 
         row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
@@ -103,7 +101,6 @@ class Customers < FXMainWindow
         search_btn.connect (SEL_COMMAND) { self.search_items }
         info_btn.connect (SEL_COMMAND) { self.results_info }
         new_btn.connect (SEL_COMMAND) { self.new_customer }
-        fold_btn.connect (SEL_COMMAND) { system("explorer microscope") if OS.windows? == true }
 
         @which_search.connect (SEL_COMMAND) { self.search_items }
 
@@ -255,6 +252,7 @@ class Customer_Jobs < FXMainWindow
         save_btn = FXButton.new(column3, "Save")
         delete_cust = FXButton.new(column3, "Delete")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
+        fold_btn = FXButton.new(column3, "Folder")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:")
         @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
@@ -308,6 +306,8 @@ class Customer_Jobs < FXMainWindow
         edit_btn.connect (SEL_COMMAND) { self.edit_job(@jobid) }
 
         save_btn.connect (SEL_COMMAND) { self.save_custie }
+
+        fold_btn.connect (SEL_COMMAND) { system("start microscope\\#{@lname_txt.text}_#{@fname_txt.text}") if OS.windows? == true }
 
         active_button.connect (SEL_COMMAND) do
             DB.execute("update jobs set active = NOT active where rowid == #{@jobid};")
