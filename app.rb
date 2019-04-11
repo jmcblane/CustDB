@@ -1,9 +1,15 @@
 #!/usr/bin/ruby
 
+#--------------------------------------------------------------#
+# Requires
+
 require 'sqlite3'
 require 'fox16'
 require 'fileutils'
 include Fox
+
+#--------------------------------------------------------------#
+# Preamble
 
 if File.exists?("./customers.db") == false
     db = SQLite3::Database.new "./customers.db"
@@ -11,9 +17,13 @@ if File.exists?("./customers.db") == false
     db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier, price unindexed, intake unindexed);")
 end
 
-FileUtils.mkdir("microscope") if File.exists?("./microscope") == false
-    
 DB = SQLite3::Database.new "./customers.db"
+
+#------------
+
+FileUtils.mkdir("microscope") if File.exists?("./microscope") == false
+
+#------------
 
 module OS
     def OS.windows?
@@ -21,8 +31,21 @@ module OS
     end
 end
 
+#--------------------------------------------------------------#
+
+
+#---------------#
+#  MAIN WINDOW  #
+#---------------#
+
 class Customers < FXMainWindow
     def initialize(app)
+
+    #-----------------
+    #  DEFINE VISUALS
+    #-----------------
+
+
         super(app, "Customer Database", :width => 400, :height => 400)
 
         mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
@@ -45,10 +68,6 @@ class Customers < FXMainWindow
         @search_txt = FXTextField.new(row2, 20, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
         search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2)
 
-        @search_txt.connect (SEL_COMMAND) { self.search_items }
-        @search_txt.connect (SEL_CHANGED) { self.search_items }
-            
-
         row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_HEIGHT|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
@@ -60,12 +79,16 @@ class Customers < FXMainWindow
         fold_btn = FXButton.new(row3, "Images")
         spacer = FXHorizontalFrame.new(row3, LAYOUT_FILL_X)
 
-        fold_btn.connect (SEL_COMMAND) { system("explorer microscope") if OS.windows? == true }
-
         row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         @customers_list = FXList.new(row4, :opts => LAYOUT_FILL|LIST_SINGLESELECT)
+
+
+    #------------------
+    #  FUNCTIONALITY
+    #------------------
+
 
         @customers_list.connect(SEL_SELECTED) do |x, y, z|
             @which_result = @customers_list.getItemData(z)
@@ -74,16 +97,29 @@ class Customers < FXMainWindow
 
         @customers_list.connect(SEL_DOUBLECLICKED) { self.results_info }
 
-        search_btn.connect (SEL_COMMAND) { self.search_items }
+        @search_txt.connect (SEL_COMMAND) { self.search_items }
+        @search_txt.connect (SEL_CHANGED) { self.search_items }
 
+        search_btn.connect (SEL_COMMAND) { self.search_items }
         info_btn.connect (SEL_COMMAND) { self.results_info }
         new_btn.connect (SEL_COMMAND) { self.new_customer }
+        fold_btn.connect (SEL_COMMAND) { system("explorer microscope") if OS.windows? == true }
 
         @which_search.connect (SEL_COMMAND) { self.search_items }
 
+
+    #-----------------
+    #  INITIAL LOAD
+    #-----------------
+        
         @which_search.value = 2
         self.search_items
     end
+
+  #==============
+  #  FUNCTIONS
+  #==============
+
 
     def search_items
         return if @search_txt.text == "*"
@@ -161,11 +197,26 @@ class Customers < FXMainWindow
     end
 end
 
+
+#------------------------#
+#  CUSTOMER INFO WINDOW  #
+#------------------------#
+
 class Customer_Jobs < FXMainWindow
     def initialize(app, custid)
+
+    #---------------------
+    #  WINDOW VARIABLES
+    #---------------------
+
         @custid = custid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ") if @custid != nil
         @custname = "NEW CUSTOMER" if @custid == nil
+
+    #-------------------
+    #  DEFINE VISUALS
+    #-------------------
+
 
         super(app, "Customer: #{@custname}", :width=> 450, :height => 400)
 
@@ -202,21 +253,11 @@ class Customer_Jobs < FXMainWindow
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         save_btn = FXButton.new(column3, "Save")
-        delete_btn = FXButton.new(column3, "Delete")
+        delete_cust = FXButton.new(column3, "Delete")
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         spacer = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:")
         @custid_txt = FXTextField.new(column3, 7, :opts => TEXTFIELD_NORMAL|LAYOUT_FILL_X)
-
-        delete_btn.connect (SEL_COMMAND) do
-            check = FXMessageBox.question(app, MBOX_YES_NO, "Are you sure?", "Are you sure? This can't be undone!")
-            if check == MBOX_CLICKED_YES
-                DB.execute("delete from customers where rowid == #{@custid}")
-                DB.execute("delete from jobs where custid == #{@custid}")
-            end
-            self.close(true)
-        end
-
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -226,10 +267,6 @@ class Customer_Jobs < FXMainWindow
 
         @job_list = FXList.new(column1, :opts => LAYOUT_FILL|LIST_SINGLESELECT, :width => 315, :height => 175)
 
-        @job_list.connect(SEL_SELECTED) { |x, y, z| @jobid = @job_list.getItemData(z) }
-
-        @job_list.connect(SEL_DOUBLECLICKED) { self.edit_job(@jobid) }
-
         column2 = FXVerticalFrame.new(row2, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
@@ -238,15 +275,33 @@ class Customer_Jobs < FXMainWindow
         active_button = FXButton.new(column2, "Active")
         scope_btn = FXButton.new(column2, "Add Images")
         spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
-        delete_button = FXButton.new(column2, "Delete")
+        delete_job = FXButton.new(column2, "Delete")
         spacer = FXFrame.new(column2, LAYOUT_FILL_Y)
+
+
+    #------------------
+    #  FUNCTIONALITY
+    #------------------
+
 
         new_btn.disable if @custid == nil
         edit_btn.disable if @custid == nil
         active_button.disable if @custid == nil
         scope_btn.disable if @custid == nil
-        delete_button.disable if @custid == nil
-        delete_btn.disable if @custid == nil
+        delete_job.disable if @custid == nil
+        delete_cust.disable if @custid == nil
+
+        @job_list.connect(SEL_SELECTED) { |x, y, z| @jobid = @job_list.getItemData(z) }
+        @job_list.connect(SEL_DOUBLECLICKED) { self.edit_job(@jobid) }
+
+        delete_cust.connect (SEL_COMMAND) do
+            check = FXMessageBox.question(app, MBOX_YES_NO, "Are you sure?", "Are you sure? This can't be undone!")
+            if check == MBOX_CLICKED_YES
+                DB.execute("delete from customers where rowid == #{@custid}")
+                DB.execute("delete from jobs where custid == #{@custid}")
+            end
+            self.close(true)
+        end
 
         new_btn.connect (SEL_COMMAND) { self.edit_job(nil) }
 
@@ -261,7 +316,7 @@ class Customer_Jobs < FXMainWindow
 
         scope_btn.connect(SEL_COMMAND) { self.open_scope }
 
-        delete_button.connect (SEL_COMMAND) do
+        delete_job.connect (SEL_COMMAND) do
             check = FXMessageBox.question(app, MBOX_YES_NO, "Are you sure?", "Are you sure? This can't be undone!")
             if check == MBOX_CLICKED_YES
                 DB.execute("delete from jobs where rowid == #{@jobid}")
@@ -269,9 +324,20 @@ class Customer_Jobs < FXMainWindow
             self.load_jobs
         end
 
+
+    #-----------------
+    #  INITIAL LOAD
+    #-----------------
+        
         self.load_custie
         self.load_jobs
     end
+
+
+  #==============
+  #  FUNCTIONS  
+  #==============
+
 
     def load_custie
         return if @custid == nil
@@ -336,13 +402,29 @@ class Customer_Jobs < FXMainWindow
         super; show(PLACEMENT_SCREEN)
     end
 
+
 end
+
+
+#--------------#
+#  JOB WINDOW  #
+#--------------#
 
 class Job_Edit < FXMainWindow
     def initialize(app, custid, jobid)
+
+    #-------------------
+    #  WINDOW VARIABLES
+    #-------------------
+
         @custid = custid
         @jobid = jobid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ")
+
+    #-------------------
+    #  DEFINE VISUALS
+    #-------------------
+
 
         super(app, "Edit Job", :width=> 350, :height => 300)
 
@@ -386,14 +468,28 @@ class Job_Edit < FXMainWindow
         @active_chk = FXCheckButton.new(row4, "Active?")
         btn_save = FXButton.new(row4, "Save")
 
-        btn_save.connect (SEL_COMMAND) { self.save_job_info }
-
         row5 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL|FRAME_SUNKEN,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
         @notes_box = FXText.new(row5, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
 
+
+    #------------------
+    #  FUNCTIONALITY  
+    #------------------
+
+        btn_save.connect (SEL_COMMAND) { self.save_job_info }
+
+    #-----------------
+    #  INITIAL LOAD  
+    #-----------------
+
         self.load_job_info
     end
+
+  #==============
+  #  FUNCTIONS  
+  #==============
+
 
     def load_job_info
         @active_chk.setCheck(true)
@@ -430,6 +526,10 @@ class Job_Edit < FXMainWindow
 
 end
 
+
+#--------------------------------#
+# Run
+
 if __FILE__ == $0
     FXApp.new do |app|
         Customers.new(app)
@@ -437,3 +537,6 @@ if __FILE__ == $0
         app.run
     end
 end
+
+#--------------------------------#
+# EOF
