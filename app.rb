@@ -15,13 +15,15 @@ if File.exists?("./customers.db") == false
     db = SQLite3::Database.new "./customers.db"
     db.execute("create virtual table customers using fts5(fname, lname, addr, ph1, ph2, email, cityzip, identifier);")
     db.execute("create virtual table jobs using fts5(custid unindexed, desc, notes, active unindexed, identifier, price unindexed, intake unindexed);")
+    db.execute("create table colors(bgcolor integer not null, objcolor integer not null, bgtext integer not null, objtext integer not null);")
+    db.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (4287843849, 4282488418, 4293190884, 4278190080);")
 end
 
 DB = SQLite3::Database.new "./customers.db"
 
 #------------
 
-FileUtils.mkdir("microscope") if File.exists?("./microscope") == false
+FileUtils.mkdir("customers") if File.exists?("./customers") == false
 
 #------------
 
@@ -29,6 +31,24 @@ module OS
     def OS.windows?
         (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
     end
+end
+
+#------------
+# Not good practice, but whatever.
+# Rescue will update current databases with the new table. Will remove later.
+
+begin
+    $bg_color = DB.execute("select bgcolor from colors;")[0][0]
+    $obj_color = DB.execute("select objcolor from colors;")[0][0]
+    $bg_text = DB.execute("select bgtext from colors;")[0][0]
+    $obj_text = DB.execute("select objtext from colors;")[0][0]
+rescue
+    DB.execute("create table colors(bgcolor integer not null, objcolor integer not null, bgtext integer not null, objtext integer not null);")
+    DB.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (4287843849, 4282488418, 4293190884, 4278190080);")
+    $bg_color = DB.execute("select bgcolor from colors;")[0][0]
+    $obj_color = DB.execute("select objcolor from colors;")[0][0]
+    $bg_text = DB.execute("select bgtext from colors;")[0][0]
+    $obj_text = DB.execute("select objtext from colors;")[0][0]
 end
 
 #--------------------------------------------------------------#
@@ -45,14 +65,29 @@ class Customers < FXMainWindow
     #  DEFINE VISUALS
     #-----------------
 
-
         super(app, "Customer Database", :width => 400, :height => 400)
 
         mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
-        
+
+        menubar = FXMenuBar.new(mainframe, LAYOUT_TOP|LAYOUT_FILL_X,
+                :padTop => 1, :padBottom => 1)
+
+        mainmenu = FXMenuPane.new(mainframe)
+        opt1 = FXMenuCommand.new(mainmenu, "&New Customer", nil)
+        opt2 = FXMenuCommand.new(mainmenu, "&Open Selection", nil)
+        opt3 = FXMenuCommand.new(mainmenu, "&BG Color", nil)
+        opt4 = FXMenuCommand.new(mainmenu, "OB&J Color", nil)
+        opt6 = FXMenuCommand.new(mainmenu, "BG&Text Color", nil)
+        opt7 = FXMenuCommand.new(mainmenu, "OBJTe&xt Color", nil)
+        opt5 = FXMenuCommand.new(mainmenu, "&Save Colors", nil)
+
+        title1 = FXMenuTitle.new(menubar, "&Options", nil, mainmenu)
+
+        separator0 = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_LINE)
+
         row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
-            :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+            :padLeft => 5, :padRight => 5, :padTop => 20, :padBottom => 10)
 
         @which_search = FXDataTarget.new(0)
 
@@ -68,17 +103,8 @@ class Customers < FXMainWindow
         @search_txt = FXTextField.new(row2, 20, :opts => LAYOUT_FILL_X)
         search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2, :opts => JUSTIFY_NORMAL)
 
-        row3 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_HEIGHT|PACK_UNIFORM_WIDTH,
-            :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
-
-        spacer3 = FXFrame.new(row3, LAYOUT_FILL_X)
-        info_btn = FXButton.new(row3, "Info", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5, :opts => JUSTIFY_NORMAL)
-        spacer4 = FXFrame.new(row3, LAYOUT_FILL_X)
-        new_btn = FXButton.new(row3, "New", :padRight => 25, :padLeft => 25, :padTop => 5, :padBottom => 5, :opts => JUSTIFY_NORMAL)
-        spacer5 = FXFrame.new(row3, LAYOUT_FILL_X)
-
         row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL,
-            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+            :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
         @customers_list = FXList.new(row4, :opts => LAYOUT_FILL|LIST_SINGLESELECT)
 
@@ -86,20 +112,19 @@ class Customers < FXMainWindow
         # COLORS
         # -------
 
-        for i in [ mainframe, row1, row2, row3, row4, spacer, spacer2, spacer3, spacer4, spacer5, custie_btn, job_btn, active_btn, search_btn, info_btn, new_btn ]
-            i.backColor=FXRGB(9,78,147)
-        end
+        bg_list = [ mainframe, row1, row2, row4, spacer, spacer2, custie_btn, job_btn, active_btn, menubar, title1]
+        obj_list = [ @search_txt, @customers_list, search_btn, mainmenu, opt1, opt2, opt3, opt4, opt5, opt6, opt7]
+        bgtext_list = [title1, custie_btn, job_btn, active_btn]
+        objtext_list = [opt1, opt2, opt3, opt4, opt5, opt6, opt7, @search_txt, search_btn, @customers_list]
 
-        for i in [ search_btn, info_btn, new_btn, @search_txt, @customers_list ]
-            i.backColor=FXRGB(98,150,65)
-        end
-
-
+        bg_list.each { |i| i.backColor=$bg_color }
+        obj_list.each { |i| i.backColor=$obj_color }
+        bgtext_list.each { |i| i.textColor=$bg_text }
+        objtext_list.each { |i| i.textColor=$obj_text }
 
     #------------------
     #  FUNCTIONALITY
     #------------------
-
 
         @customers_list.connect(SEL_SELECTED) do |x, y, z|
             @which_result = @customers_list.getItemData(z)
@@ -111,9 +136,97 @@ class Customers < FXMainWindow
         @search_txt.connect (SEL_COMMAND) { self.search_items }
         @search_txt.connect (SEL_CHANGED) { self.search_items }
 
-        search_btn.connect (SEL_COMMAND) { self.search_items }
-        info_btn.connect (SEL_COMMAND) { self.results_info }
-        new_btn.connect (SEL_COMMAND) { self.new_customer }
+        opt1.connect (SEL_COMMAND) { self.new_customer }
+        opt2.connect (SEL_COMMAND) { self.results_info }
+
+        opt3.connect(SEL_COMMAND) do
+            clr_box = FXColorDialog.new(self, "Select Color")
+            clr_box.opaqueOnly = true
+
+            clr_box.connect(SEL_COMMAND) { bg_list.each { |i| i.backColor=clr_box.rgba } }
+
+            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
+                $bg_color = clr_box.rgba
+                clr_box.close(true)
+            end
+
+            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
+                clr_box.close(true)
+            end
+
+            clr_box.connect(SEL_CLOSE) { bg_list.each { |i| i.backColor=$bg_color }; clr_box.destroy }
+
+            clr_box.create
+            clr_box.show
+        end
+
+        opt4.connect(SEL_COMMAND) do
+            clr_box = FXColorDialog.new(self, "Select Color")
+            clr_box.opaqueOnly = true
+
+            clr_box.connect(SEL_COMMAND) { obj_list.each { |i| i.backColor=clr_box.rgba } }
+
+            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
+                $obj_color = clr_box.rgba
+                clr_box.close(true)
+            end
+
+            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
+                clr_box.close(true)
+            end
+
+            clr_box.connect(SEL_CLOSE) { obj_list.each { |i| i.backColor=$obj_color }; clr_box.destroy }
+
+            clr_box.create
+            clr_box.show
+        end
+
+        opt6.connect(SEL_COMMAND) do
+            clr_box = FXColorDialog.new(self, "Select Color")
+            clr_box.opaqueOnly = true
+
+            clr_box.connect(SEL_COMMAND) { bgtext_list.each { |i| i.textColor=clr_box.rgba } }
+
+            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
+                $bg_text = clr_box.rgba
+                clr_box.close(true)
+            end
+
+            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
+                clr_box.close(true)
+            end
+
+            clr_box.connect(SEL_CLOSE) { bgtext_list.each { |i| i.textColor=$bg_text }; clr_box.destroy }
+
+            clr_box.create
+            clr_box.show
+        end
+
+        opt7.connect(SEL_COMMAND) do
+            clr_box = FXColorDialog.new(self, "Select Color")
+            clr_box.opaqueOnly = true
+
+            clr_box.connect(SEL_COMMAND) { objtext_list.each { |i| i.textColor=clr_box.rgba } }
+
+            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
+                $obj_text = clr_box.rgba
+                clr_box.close(true)
+            end
+
+            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
+                clr_box.close(true)
+            end
+
+            clr_box.connect(SEL_CLOSE) { objtext_list.each { |i| i.textColor=$obj_text }; clr_box.destroy }
+
+            clr_box.create
+            clr_box.show
+        end
+
+        opt5.connect(SEL_COMMAND) do
+            DB.execute("delete from colors;")
+            DB.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (#{$bg_color}, #{$obj_color}, #{$bg_text}, #{$obj_text});")
+        end
 
         @which_search.connect (SEL_COMMAND) { self.search_items }
 
@@ -293,13 +406,16 @@ class Customer_Jobs < FXMainWindow
         # COLORS
         # -------
 
-        for i in [ mainframe, row1, row2, column1, column2, column3, column4, column5, separator, spacer1, spacer2, spacer3, spacer4, fname_lbl, lname_lbl, addr_lbl, cityzip_lbl, ph1_lbl, ph2_lbl, email_lbl, id_lbl ]
-            i.backColor = FXRGB(9,78,147)
-        end
+        bg_list = [ mainframe, row1, row2, column1, column2, column3, column4, column5, separator, spacer1, spacer2, spacer3, spacer4, fname_lbl, lname_lbl, addr_lbl, cityzip_lbl, ph1_lbl, ph2_lbl, email_lbl, id_lbl ]
+        obj_list = [ @fname_txt, @lname_txt, @addr_txt, @cityzip_txt, @ph1_txt, @ph2_txt, @email_txt, save_btn, delete_cust, fold_btn, @custid_txt, @job_list, new_btn, edit_btn, active_button, scope_btn, delete_job ]
+        bgtext_list = [fname_lbl, lname_lbl, addr_lbl, cityzip_lbl, ph1_lbl, ph2_lbl, email_lbl, id_lbl]
+        objtext_list = [@fname_txt, @lname_txt, @addr_txt, @cityzip_txt, @ph1_txt, @ph2_txt, @email_txt, save_btn, delete_cust, fold_btn, @custid_txt, @job_list, new_btn, edit_btn, active_button, scope_btn, delete_job]
 
-        for i in [ @fname_txt, @lname_txt, @addr_txt, @cityzip_txt, @ph1_txt, @ph2_txt, @email_txt, save_btn, delete_cust, fold_btn, @custid_txt, @job_list, new_btn, edit_btn, active_button, scope_btn, delete_job ]
-            i.backColor = FXRGB(98,150,65)
-        end
+        bg_list.each { |i| i.backColor=$bg_color }
+        obj_list.each { |i| i.backColor=$obj_color }
+        bgtext_list.each { |i| i.textColor=$bg_text }
+        objtext_list.each { |i| i.textColor=$obj_text }
+
 
     #------------------
     #  FUNCTIONALITY
@@ -331,7 +447,7 @@ class Customer_Jobs < FXMainWindow
 
         save_btn.connect (SEL_COMMAND) { self.save_custie }
 
-        fold_btn.connect (SEL_COMMAND) { system("start microscope\\#{@lname_txt.text}_#{@fname_txt.text}") if OS.windows? == true }
+        fold_btn.connect (SEL_COMMAND) { system("start customers\\#{@lname_txt.text}_#{@fname_txt.text}") if OS.windows? == true }
 
         active_button.connect (SEL_COMMAND) do
             DB.execute("update jobs set active = NOT active where rowid == #{@jobid};")
@@ -413,12 +529,12 @@ class Customer_Jobs < FXMainWindow
     end
 
     def open_scope
-        directory = "microscope/#{@lname_txt.text}_#{@fname_txt.text}"
+        directory = "customers/#{@lname_txt.text}_#{@fname_txt.text}"
         FileUtils.mkdir(directory) if File.exists?("./#{directory}") == false
         if OS.windows? == true
-            FileUtils.mv(directory, "microscope/Customer")
-            a = `start /wait microscope/dv.exe.lnk`
-            FileUtils.mv("microscope/Customer", directory)
+            FileUtils.mv(directory, "customers/Customer")
+            a = `start /wait customers/dv.exe.lnk`
+            FileUtils.mv("customers/Customer", directory)
         end
     end
 
@@ -500,14 +616,15 @@ class Job_Edit < FXMainWindow
         # COLORS
         # -------
 
-        for i in [ mainframe, row1, row2, row3, row4, row5, column1, column2, spacer1, spacer2, intake_lbl, fname_lbl, desc_lbl, cost_lbl, jobid_lbl, name_lbl, @active_chk ]
-            i.backColor = FXRGB(9,78,147)
-        end
+        bg_list = [ mainframe, row1, row2, row3, row4, row5, column1, column2, spacer1, spacer2, intake_lbl, fname_lbl, desc_lbl, cost_lbl, jobid_lbl, name_lbl, @active_chk ]
+        obj_list = [ @intake_txt, @jobid_txt, @desc_txt, @price_txt, @notes_box, btn_save, name_lbl ]
+        bgtext_list = [intake_lbl, fname_lbl, desc_lbl, cost_lbl, jobid_lbl, @active_chk]
+        objtext_list = [@intake_txt, @jobid_txt, name_lbl, @desc_txt, @price_txt, btn_save, @notes_box]
 
-        for i in [ @intake_txt, @jobid_txt, @desc_txt, @price_txt, @notes_box, btn_save, name_lbl ]
-            i.backColor = FXRGB(98,150,65)
-        end
-
+        bg_list.each { |i| i.backColor=$bg_color }
+        obj_list.each { |i| i.backColor=$obj_color }
+        bgtext_list.each { |i| i.textColor=$bg_text }
+        objtext_list.each { |i| i.textColor=$obj_text }
 
     #------------------
     #  FUNCTIONALITY  
@@ -560,6 +677,17 @@ class Job_Edit < FXMainWindow
         super; show(PLACEMENT_SCREEN)
     end
 
+end
+
+class ColorPick < FXDialogBox
+    def initialize(owner)
+        super(owner, "Select a color")
+        mainframe = FXVerticalFrame.new(self, LAYOUT_FILL)
+    end
+
+    def create
+        super; show(PLACEMENT_SCREEN)
+    end
 end
 
 
