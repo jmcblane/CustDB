@@ -284,7 +284,7 @@ class Customer_Jobs < FXMainWindow
         new_btn = FXButton.new(column5, "New", :opts => JUSTIFY_NORMAL)
         edit_btn = FXButton.new(column5, "Edit", :opts => JUSTIFY_NORMAL)
         active_button = FXButton.new(column5, "Active", :opts => JUSTIFY_NORMAL)
-        scope_btn = FXButton.new(column5, "Add Images", :opts => JUSTIFY_NORMAL)
+        scope_btn = FXButton.new(column5, "Images", :opts => JUSTIFY_NORMAL)
         spacer3 = FXFrame.new(column5, LAYOUT_FILL_Y)
         delete_job = FXButton.new(column5, "Delete", :opts => JUSTIFY_NORMAL)
         spacer4 = FXFrame.new(column5, LAYOUT_FILL_Y)
