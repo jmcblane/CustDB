@@ -100,8 +100,8 @@ class Customers < FXMainWindow
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        @search_txt = FXTextField.new(row2, 20, :opts => LAYOUT_FILL_X)
-        search_btn = FXButton.new(row2, "Search", :padRight => 5, :padLeft => 5, :padTop => 2, :padBottom => 2, :opts => JUSTIFY_NORMAL)
+        @search_txt = FXTextField.new(row2, 20, :opts => LAYOUT_FILL_X, :padBottom => 5, :padTop => 5, :padLeft => 5, :padRight => 5)
+        search_btn = FXButton.new(row2, "Search", :padRight => 10, :padLeft => 10, :padTop => 5, :padBottom => 5, :opts => JUSTIFY_NORMAL, :width => 20, :height => 10)
 
         row4 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
