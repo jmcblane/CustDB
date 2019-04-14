@@ -306,36 +306,36 @@ class Customer_Jobs < FXMainWindow
         column1 = FXVerticalFrame.new(row1, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH, 
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        fname_lbl = FXLabel.new(column1, "First name:")
-        lname_lbl = FXLabel.new(column1, "Last name:")
-        addr_lbl = FXLabel.new(column1, "Address:")
-        cityzip_lbl = FXLabel.new(column1, "City, Zip:")
-        ph1_lbl = FXLabel.new(column1, "Phone 1:")
-        ph2_lbl = FXLabel.new(column1, "Phone 2:")
-        email_lbl = FXLabel.new(column1, "E-mail:")
+        fname_lbl = FXLabel.new(column1, "First name:", :padTop => 4, :padBottom => 4)
+        lname_lbl = FXLabel.new(column1, "Last name:", :padTop => 4, :padBottom => 4)
+        addr_lbl = FXLabel.new(column1, "Address:", :padTop => 4, :padBottom => 4)
+        cityzip_lbl = FXLabel.new(column1, "City, Zip:", :padTop => 4, :padBottom => 4)
+        ph1_lbl = FXLabel.new(column1, "Phone 1:", :padTop => 4, :padBottom => 4)
+        ph2_lbl = FXLabel.new(column1, "Phone 2:", :padTop => 4, :padBottom => 4)
+        email_lbl = FXLabel.new(column1, "E-mail:", :padTop => 4, :padBottom => 4)
 
         column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        @fname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @lname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @addr_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @cityzip_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @ph1_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @ph2_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
-        @email_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X)
+        @fname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @lname_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @addr_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @cityzip_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @ph1_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @ph2_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @email_txt = FXTextField.new(column2, 26, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
         separator = FXSeparator.new(mainframe, LAYOUT_FILL_X)
 
         column3 = FXVerticalFrame.new(row1, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH|PACK_UNIFORM_HEIGHT,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        save_btn = FXButton.new(column3, "Save", :opts => JUSTIFY_NORMAL)
-        delete_cust = FXButton.new(column3, "Delete", :opts => JUSTIFY_NORMAL)
+        save_btn = FXButton.new(column3, "Save", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
+        delete_cust = FXButton.new(column3, "Delete", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
         spacer1 = FXFrame.new(column3, LAYOUT_FILL_Y)
-        fold_btn = FXButton.new(column3, "Folder", :opts => JUSTIFY_NORMAL)
+        fold_btn = FXButton.new(column3, "Folder", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
         spacer2 = FXFrame.new(column3, LAYOUT_FILL_Y)
         id_lbl = FXLabel.new(column3, "Cust ID:", :opts => JUSTIFY_NORMAL)
-        @custid_txt = FXTextField.new(column3, 7, :opts => LAYOUT_FILL_X)
+        @custid_txt = FXTextField.new(column3, 7, :opts => LAYOUT_FILL_X, :padTop => 4, :padBottom => 4, :padRight => 5, :padLeft => 5)
 
         row2 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -348,12 +348,12 @@ class Customer_Jobs < FXMainWindow
         column5 = FXVerticalFrame.new(row2, LAYOUT_FILL_Y|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        new_btn = FXButton.new(column5, "New", :opts => JUSTIFY_NORMAL)
-        edit_btn = FXButton.new(column5, "Edit", :opts => JUSTIFY_NORMAL)
-        active_button = FXButton.new(column5, "Active", :opts => JUSTIFY_NORMAL)
-        scope_btn = FXButton.new(column5, "Images", :opts => JUSTIFY_NORMAL)
+        new_btn = FXButton.new(column5, "New", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
+        edit_btn = FXButton.new(column5, "Edit", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
+        active_button = FXButton.new(column5, "Active", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
+        scope_btn = FXButton.new(column5, "Images", :opts => JUSTIFY_NORMAL, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
         spacer3 = FXFrame.new(column5, LAYOUT_FILL_Y)
-        delete_job = FXButton.new(column5, "Delete", :opts => JUSTIFY_NORMAL)
+        delete_job = FXButton.new(column5, "Delete", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
         spacer4 = FXFrame.new(column5, LAYOUT_FILL_Y)
 
         # -------
@@ -536,10 +536,10 @@ class Job_Edit < FXMainWindow
         column1 = FXVerticalFrame.new(row1, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
 
-        intake_lbl = FXLabel.new(column1, "Intake Date:")
-        fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 5)
-        desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 6)
-        cost_lbl = FXLabel.new(column1, "Job price:")
+        intake_lbl = FXLabel.new(column1, "Intake Date:", :padTop => 4, :padBottom => 4)
+        fname_lbl = FXLabel.new(column1, "Customer:", :padTop => 4, :padBottom => 4)
+        desc_lbl = FXLabel.new(column1, "Job Desc:", :padTop => 4, :padBottom => 4)
+        cost_lbl = FXLabel.new(column1, "Job price:", :padTop => 4, :padBottom => 4)
 
         column2 = FXVerticalFrame.new(row1, LAYOUT_FILL_X,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
@@ -547,25 +547,25 @@ class Job_Edit < FXMainWindow
         row2 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @intake_txt = FXTextField.new(row2, 11, :opts => 0)
+        @intake_txt = FXTextField.new(row2, 11, :opts => 0, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
         spacer1 = FXFrame.new(row2, LAYOUT_FILL_X)
-        jobid_lbl = FXLabel.new(row2, "Job ID:", :padTop => 3)
-        @jobid_txt = FXTextField.new(row2, 7, :opts => 0)
+        jobid_lbl = FXLabel.new(row2, "Job ID:", :padTop => 4, :padBottom => 4)
+        @jobid_txt = FXTextField.new(row2, 7, :opts => 0, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
 
         row3 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        name_lbl = FXLabel.new(row3, @custname)
-        @desc_txt = FXTextField.new(column2, 30, :opts => LAYOUT_FILL_X)
+        name_lbl = FXLabel.new(row3, @custname, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        @desc_txt = FXTextField.new(column2, 30, :opts => LAYOUT_FILL_X, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
 
         row4 = FXHorizontalFrame.new(column2, LAYOUT_FILL_X,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
-        @price_txt = FXTextField.new(row4, 7, :opts => 0)
+        @price_txt = FXTextField.new(row4, 7, :opts => 0, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
 
         spacer2 = FXFrame.new(row4, LAYOUT_FILL_X)
-        @active_chk = FXCheckButton.new(row4, "Active?")
-        btn_save = FXButton.new(row4, "Save", :opts => JUSTIFY_NORMAL)
+        @active_chk = FXCheckButton.new(row4, "Active?", :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
+        btn_save = FXButton.new(row4, "Save", :opts => JUSTIFY_NORMAL, :padRight => 5, :padLeft => 5, :padTop => 4, :padBottom => 4)
 
         row5 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL,
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
