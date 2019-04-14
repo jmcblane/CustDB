@@ -332,6 +332,7 @@ class Customer_Jobs < FXMainWindow
     #  WINDOW VARIABLES
     #---------------------
 
+        @app = app
         @custid = custid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ") if @custid != nil
         @custname = "NEW CUSTOMER" if @custid == nil
@@ -495,6 +496,11 @@ class Customer_Jobs < FXMainWindow
             fields.each { |x, y| DB.execute("update customers set #{x} = '#{y}' where rowid == #{@custid};") }
         end
         self.close(true)
+
+        if @custid == nil
+            custid = DB.execute("select rowid from customers order by rowid desc limit 1;")[0][0]
+            edit_win = Customer_Jobs.new(@app, custid); edit_win.create
+        end
     end
 
     def load_jobs
@@ -659,13 +665,13 @@ class Job_Edit < FXMainWindow
     def save_job_info
         fields = {"desc" => @desc_txt, "notes" => @notes_box, "active" => @active_chk.checkState, "identifier" => @jobid_txt, "intake" => @intake_txt, "price" => @price_txt}
         if @jobid == nil
-            DB.execute("insert into jobs (custid, desc, notes, active, identifier, intake, price) values (#{@custid}, '#{@desc_txt}', '#{@notes_box}', #{@active_chk.checkState}, '#{@jobid_txt}', '#{@intake_txt}', '#{@price_txt}');")
+            DB.execute("insert into jobs (custid, desc, notes, active, identifier, intake, price) values (#{@custid}, \"#{@desc_txt}\", \"#{@notes_box}\", #{@active_chk.checkState}, '#{@jobid_txt}', '#{@intake_txt}', '#{@price_txt}');")
         else
             for x, y in fields
                 if x == "active"
                     DB.execute("update jobs set #{x} = #{y} where rowid == #{@jobid};")
                 else
-                    DB.execute("update jobs set #{x} = '#{y}' where rowid == #{@jobid};")
+                    DB.execute("update jobs set #{x} = \"#{y}\" where rowid == #{@jobid};")
                 end
             end
         end
