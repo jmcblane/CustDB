@@ -139,14 +139,18 @@ class Customers < FXMainWindow
         opt1.connect (SEL_COMMAND) { self.new_customer }
         opt2.connect (SEL_COMMAND) { self.results_info }
 
-        opt3.connect(SEL_COMMAND) do
+        def choose_color(list, type, variable)
             clr_box = FXColorDialog.new(self, "Select Color")
             clr_box.opaqueOnly = true
 
-            clr_box.connect(SEL_COMMAND) { bg_list.each { |i| i.backColor=clr_box.rgba } }
+            if type == 0
+                clr_box.connect(SEL_COMMAND) { list.each { |i| i.backColor=clr_box.rgba } }
+            else
+                clr_box.connect(SEL_COMMAND) { list.each { |i| i.textColor=clr_box.rgba } }
+            end
 
             clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
-                $bg_color = clr_box.rgba
+                variable = clr_box.rgba
                 clr_box.close(true)
             end
 
@@ -154,74 +158,23 @@ class Customers < FXMainWindow
                 clr_box.close(true)
             end
 
-            clr_box.connect(SEL_CLOSE) { bg_list.each { |i| i.backColor=$bg_color }; clr_box.destroy }
+            if type == 0
+                clr_box.connect(SEL_CLOSE) { list.each { |i| i.backColor=variable }; clr_box.destroy }
+            else
+                clr_box.connect(SEL_CLOSE) { list.each { |i| i.textColor=variable }; clr_box.destroy }
+            end
 
             clr_box.create
             clr_box.show
         end
 
-        opt4.connect(SEL_COMMAND) do
-            clr_box = FXColorDialog.new(self, "Select Color")
-            clr_box.opaqueOnly = true
+        opt3.connect(SEL_COMMAND) { choose_color(bg_list, 0, $bg_color) }
 
-            clr_box.connect(SEL_COMMAND) { obj_list.each { |i| i.backColor=clr_box.rgba } }
+        opt4.connect(SEL_COMMAND) { choose_color(obj_list, 0, $obj_color) }
 
-            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
-                $obj_color = clr_box.rgba
-                clr_box.close(true)
-            end
+        opt6.connect(SEL_COMMAND) { choose_color(bgtext_list, 1, $bg_text) }
 
-            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
-                clr_box.close(true)
-            end
-
-            clr_box.connect(SEL_CLOSE) { obj_list.each { |i| i.backColor=$obj_color }; clr_box.destroy }
-
-            clr_box.create
-            clr_box.show
-        end
-
-        opt6.connect(SEL_COMMAND) do
-            clr_box = FXColorDialog.new(self, "Select Color")
-            clr_box.opaqueOnly = true
-
-            clr_box.connect(SEL_COMMAND) { bgtext_list.each { |i| i.textColor=clr_box.rgba } }
-
-            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
-                $bg_text = clr_box.rgba
-                clr_box.close(true)
-            end
-
-            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
-                clr_box.close(true)
-            end
-
-            clr_box.connect(SEL_CLOSE) { bgtext_list.each { |i| i.textColor=$bg_text }; clr_box.destroy }
-
-            clr_box.create
-            clr_box.show
-        end
-
-        opt7.connect(SEL_COMMAND) do
-            clr_box = FXColorDialog.new(self, "Select Color")
-            clr_box.opaqueOnly = true
-
-            clr_box.connect(SEL_COMMAND) { objtext_list.each { |i| i.textColor=clr_box.rgba } }
-
-            clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
-                $obj_text = clr_box.rgba
-                clr_box.close(true)
-            end
-
-            clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
-                clr_box.close(true)
-            end
-
-            clr_box.connect(SEL_CLOSE) { objtext_list.each { |i| i.textColor=$obj_text }; clr_box.destroy }
-
-            clr_box.create
-            clr_box.show
-        end
+        opt7.connect(SEL_COMMAND) { choose_color(objtext_list, 1, $obj_text) }
 
         opt5.connect(SEL_COMMAND) do
             DB.execute("delete from colors;")
