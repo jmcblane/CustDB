@@ -638,16 +638,7 @@ class Job_Edit < FXMainWindow
 
 end
 
-class ColorPick < FXDialogBox
-    def initialize(owner)
-        super(owner, "Select a color")
-        mainframe = FXVerticalFrame.new(self, LAYOUT_FILL)
-    end
 
-    def create
-        super; show(PLACEMENT_SCREEN)
-    end
-end
 
 
 #--------------------------------#
