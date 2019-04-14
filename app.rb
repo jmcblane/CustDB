@@ -391,8 +391,8 @@ class Customer_Jobs < FXMainWindow
             if check == MBOX_CLICKED_YES
                 DB.execute("delete from customers where rowid == #{@custid}")
                 DB.execute("delete from jobs where custid == #{@custid}")
+                self.close(true)
             end
-            self.close(true)
         end
 
         new_btn.connect (SEL_COMMAND) { self.edit_job(nil) }
