@@ -8,8 +8,7 @@ require 'fox16'
 require 'fileutils'
 include Fox
 
-#--------------------------------------------------------------#
-# Preamble
+## Preamble ##
 
 if File.exists?("./customers.db") == false
     db = SQLite3::Database.new "./customers.db"
@@ -44,7 +43,7 @@ begin
     $obj_text = DB.execute("select objtext from colors;")[0][0]
 rescue
     DB.execute("create table colors(bgcolor integer not null, objcolor integer not null, bgtext integer not null, objtext integer not null);")
-    DB.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (4287843849, 4282488418, 4293190884, 4278190080);")
+    DB.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (4282400832, 4281282351, 4294967295, 4290955456);")
     $bg_color = DB.execute("select bgcolor from colors;")[0][0]
     $obj_color = DB.execute("select objcolor from colors;")[0][0]
     $bg_text = DB.execute("select bgtext from colors;")[0][0]
@@ -54,21 +53,18 @@ end
 #--------------------------------------------------------------#
 
 
-#---------------#
-#  MAIN WINDOW  #
-#---------------#
+##  MAIN WINDOW  ##
 
 class Customers < FXMainWindow
     def initialize(app)
 
-    #-----------------
-    #  DEFINE VISUALS
-    #-----------------
+####  DEFINE VISUALS ##
 
-        super(app, "Customer Database", :width => 400, :height => 400)
+        super(app, "Customer Database", :width => 400, :height => 600)
 
         mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
+
 
         menubar = FXMenuBar.new(mainframe, LAYOUT_TOP|LAYOUT_FILL_X,
                 :padTop => 1, :padBottom => 1)
@@ -85,6 +81,10 @@ class Customers < FXMainWindow
         title1 = FXMenuTitle.new(menubar, "&Options", nil, mainmenu)
 
         separator0 = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_LINE)
+
+        @logo = FXPNGImage.new(app, File.open("image.png", "rb").read)
+        image = FXImageFrame.new(mainframe, @logo, LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT, :width => 390, :height => 195)
+        @logo.blend($bg_color)
 
         row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 20, :padBottom => 10)
@@ -108,9 +108,7 @@ class Customers < FXMainWindow
 
         @customers_list = FXList.new(row4, :opts => LAYOUT_FILL|LIST_SINGLESELECT)
 
-        # -------
-        # COLORS
-        # -------
+#### COLORS ##
 
         bg_list = [ mainframe, row1, row2, row4, spacer, spacer2, custie_btn, job_btn, active_btn, menubar, title1]
         obj_list = [ @search_txt, @customers_list, search_btn, mainmenu, opt1, opt2, opt3, opt4, opt5, opt6, opt7]
@@ -122,9 +120,7 @@ class Customers < FXMainWindow
         bgtext_list.each { |i| i.textColor=$bg_text }
         objtext_list.each { |i| i.textColor=$obj_text }
 
-    #------------------
-    #  FUNCTIONALITY
-    #------------------
+####  FUNCTIONALITY ##
 
         @customers_list.connect(SEL_SELECTED) do |x, y, z|
             @which_result = @customers_list.getItemData(z)
@@ -145,36 +141,57 @@ class Customers < FXMainWindow
 
             if type == 0
                 clr_box.connect(SEL_COMMAND) { list.each { |i| i.backColor=clr_box.rgba } }
+                @logo.blend($bg_color)
             else
                 clr_box.connect(SEL_COMMAND) { list.each { |i| i.textColor=clr_box.rgba } }
             end
 
             clr_box.children[0].acceptButton.connect(SEL_COMMAND) do
-                variable = clr_box.rgba
+                case variable
+                when 0
+                    $bg_color = clr_box.rgba
+                    list.each { |i| i.backColor=$bg_color }
+                    @logo.blend($bg_color)
+                when 1
+                    $obj_color = clr_box.rgba
+                    list.each { |i| i.backColor=$obj_color }
+                when 2
+                    $bg_text = clr_box.rgba
+                    list.each { |i| i.textColor=$bg_text }
+                when 3
+                    $obj_text = clr_box.rgba
+                    list.each { |i| i.textColor=$obj_text }
+                end
+
                 clr_box.close(true)
             end
 
             clr_box.children[0].cancelButton.connect(SEL_COMMAND) do
+                case variable
+                when 0
+                    list.each { |i| i.backColor=$bg_color }
+                    logo.blend($bg_color)
+                when 1
+                    list.each { |i| i.backColor=$obj_color }
+                when 2
+                    list.each { |i| i.textColor=$bg_text }
+                when 3
+                    list.each { |i| i.textColor=$obj_text }
+                end
                 clr_box.close(true)
-            end
-
-            if type == 0
-                clr_box.connect(SEL_CLOSE) { list.each { |i| i.backColor=variable }; clr_box.destroy }
-            else
-                clr_box.connect(SEL_CLOSE) { list.each { |i| i.textColor=variable }; clr_box.destroy }
             end
 
             clr_box.create
             clr_box.show
         end
 
-        opt3.connect(SEL_COMMAND) { choose_color(bg_list, 0, $bg_color) }
+        opt3.connect(SEL_COMMAND) { choose_color(bg_list, 0, 0) }
 
-        opt4.connect(SEL_COMMAND) { choose_color(obj_list, 0, $obj_color) }
+        opt4.connect(SEL_COMMAND) { choose_color(obj_list, 0, 1) }
 
-        opt6.connect(SEL_COMMAND) { choose_color(bgtext_list, 1, $bg_text) }
+        opt6.connect(SEL_COMMAND) { choose_color(bgtext_list, 1, 2) }
 
-        opt7.connect(SEL_COMMAND) { choose_color(objtext_list, 1, $obj_text) }
+        opt7.connect(SEL_COMMAND) { choose_color(objtext_list, 1, 3) }
 
         opt5.connect(SEL_COMMAND) do
             DB.execute("delete from colors;")
@@ -183,19 +200,13 @@ class Customers < FXMainWindow
 
         @which_search.connect (SEL_COMMAND) { self.search_items }
 
-
-    #-----------------
-    #  INITIAL LOAD
-    #-----------------
+####  INITIAL LOAD ##
         
         @which_search.value = 2
         self.search_items
     end
 
-  #==============
-  #  FUNCTIONS
-  #==============
-
+####  FUNCTIONS ##
 
     def search_items
         return if @search_txt.text == "*"
@@ -274,26 +285,19 @@ class Customers < FXMainWindow
 end
 
 
-#------------------------#
-#  CUSTOMER INFO WINDOW  #
-#------------------------#
+##  CUSTOMER INFO WINDOW  ##
 
 class Customer_Jobs < FXMainWindow
     def initialize(app, custid)
 
-    #---------------------
-    #  WINDOW VARIABLES
-    #---------------------
+####  WINDOW VARIABLES ##
 
         @app = app
         @custid = custid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ") if @custid != nil
         @custname = "NEW CUSTOMER" if @custid == nil
 
-    #-------------------
-    #  DEFINE VISUALS
-    #-------------------
-
+####  DEFINE VISUALS ##
 
         super(app, "Customer: #{@custname}", :width=> 450, :height => 400)
 
@@ -356,9 +360,7 @@ class Customer_Jobs < FXMainWindow
         delete_job = FXButton.new(column5, "Delete", :opts => JUSTIFY_NORMAL, :padTop => 4, :padBottom => 4)
         spacer4 = FXFrame.new(column5, LAYOUT_FILL_Y)
 
-        # -------
-        # COLORS
-        # -------
+#### COLORS ##
 
         bg_list = [ mainframe, row1, row2, column1, column2, column3, column4, column5, separator, spacer1, spacer2, spacer3, spacer4, fname_lbl, lname_lbl, addr_lbl, cityzip_lbl, ph1_lbl, ph2_lbl, email_lbl, id_lbl ]
         obj_list = [ @fname_txt, @lname_txt, @addr_txt, @cityzip_txt, @ph1_txt, @ph2_txt, @email_txt, save_btn, delete_cust, fold_btn, @custid_txt, @job_list, new_btn, edit_btn, active_button, scope_btn, delete_job ]
@@ -370,11 +372,7 @@ class Customer_Jobs < FXMainWindow
         bgtext_list.each { |i| i.textColor=$bg_text }
         objtext_list.each { |i| i.textColor=$obj_text }
 
-
-    #------------------
-    #  FUNCTIONALITY
-    #------------------
-
+####  FUNCTIONALITY ##
 
         new_btn.disable if @custid == nil
         edit_btn.disable if @custid == nil
@@ -418,20 +416,13 @@ class Customer_Jobs < FXMainWindow
             self.load_jobs
         end
 
-
-    #-----------------
-    #  INITIAL LOAD
-    #-----------------
+####  INITIAL LOAD ##
         
         self.load_custie
         self.load_jobs
     end
 
-
-  #==============
-  #  FUNCTIONS  
-  #==============
-
+####  FUNCTIONS  ##
 
     def load_custie
         return if @custid == nil
@@ -501,29 +492,21 @@ class Customer_Jobs < FXMainWindow
         super; show(PLACEMENT_SCREEN)
     end
 
-
 end
 
 
-#--------------#
-#  JOB WINDOW  #
-#--------------#
+####  JOB WINDOW  ##
 
 class Job_Edit < FXMainWindow
     def initialize(app, custid, jobid)
 
-    #-------------------
-    #  WINDOW VARIABLES
-    #-------------------
+####  WINDOW VARIABLES ##
 
         @custid = custid
         @jobid = jobid
         @custname = DB.execute("select fname, lname from customers where rowid == #{@custid};")[0].join(" ")
 
-    #-------------------
-    #  DEFINE VISUALS
-    #-------------------
-
+####  DEFINE VISUALS ##
 
         super(app, "Edit Job", :width=> 350, :height => 300)
 
@@ -571,9 +554,7 @@ class Job_Edit < FXMainWindow
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
         @notes_box = FXText.new(row5, :opts => LAYOUT_FILL|TEXT_WORDWRAP)
 
-        # -------
-        # COLORS
-        # -------
+#### COLORS ##
 
         bg_list = [ mainframe, row1, row2, row3, row4, row5, column1, column2, spacer1, spacer2, intake_lbl, fname_lbl, desc_lbl, cost_lbl, jobid_lbl, name_lbl, @active_chk ]
         obj_list = [ @intake_txt, @jobid_txt, @desc_txt, @price_txt, @notes_box, btn_save, name_lbl ]
@@ -585,23 +566,16 @@ class Job_Edit < FXMainWindow
         bgtext_list.each { |i| i.textColor=$bg_text }
         objtext_list.each { |i| i.textColor=$obj_text }
 
-    #------------------
-    #  FUNCTIONALITY  
-    #------------------
+####  FUNCTIONALITY  ##
 
         btn_save.connect (SEL_COMMAND) { self.save_job_info }
 
-    #-----------------
-    #  INITIAL LOAD  
-    #-----------------
+####  INITIAL LOAD  ##
 
         self.load_job_info
     end
 
-  #==============
-  #  FUNCTIONS  
-  #==============
-
+####  FUNCTIONS  ##
 
     def load_job_info
         @active_chk.setCheck(true)
@@ -630,7 +604,6 @@ class Job_Edit < FXMainWindow
         end
         self.close(true)
     end
-
 
     def create
         super; show(PLACEMENT_SCREEN)
