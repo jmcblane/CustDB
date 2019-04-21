@@ -34,21 +34,11 @@ end
 
 #------------
 # Not good practice, but whatever.
-# Rescue will update current databases with the new table. Will remove later.
 
-begin
-    $bg_color = DB.execute("select bgcolor from colors;")[0][0]
-    $obj_color = DB.execute("select objcolor from colors;")[0][0]
-    $bg_text = DB.execute("select bgtext from colors;")[0][0]
-    $obj_text = DB.execute("select objtext from colors;")[0][0]
-rescue
-    DB.execute("create table colors(bgcolor integer not null, objcolor integer not null, bgtext integer not null, objtext integer not null);")
-    DB.execute("insert into colors (bgcolor, objcolor, bgtext, objtext) values (4282400832, 4281282351, 4294967295, 4290955456);")
-    $bg_color = DB.execute("select bgcolor from colors;")[0][0]
-    $obj_color = DB.execute("select objcolor from colors;")[0][0]
-    $bg_text = DB.execute("select bgtext from colors;")[0][0]
-    $obj_text = DB.execute("select objtext from colors;")[0][0]
-end
+$bg_color = DB.execute("select bgcolor from colors;")[0][0]
+$obj_color = DB.execute("select objcolor from colors;")[0][0]
+$bg_text = DB.execute("select bgtext from colors;")[0][0]
+$obj_text = DB.execute("select objtext from colors;")[0][0]
 
 #--------------------------------------------------------------#
 
