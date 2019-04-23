@@ -72,7 +72,7 @@ class Customers < FXMainWindow
 
         separator0 = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_LINE)
 
-        @logo = FXPNGImage.new(app, File.open("image.png", "rb").read)
+        @logo = FXPNGImage.new(app, File.open("image.png", "rb").read, IMAGE_KEEP)
         image = FXImageFrame.new(mainframe, @logo, LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT, :width => 390, :height => 195)
         @logo.blend($bg_color)
 
@@ -131,7 +131,6 @@ class Customers < FXMainWindow
 
             if type == 0
                 clr_box.connect(SEL_COMMAND) { list.each { |i| i.backColor=clr_box.rgba } }
-                @logo.blend($bg_color)
             else
                 clr_box.connect(SEL_COMMAND) { list.each { |i| i.textColor=clr_box.rgba } }
             end
@@ -141,7 +140,6 @@ class Customers < FXMainWindow
                 when 0
                     $bg_color = clr_box.rgba
                     list.each { |i| i.backColor=$bg_color }
-                    @logo.blend($bg_color)
                 when 1
                     $obj_color = clr_box.rgba
                     list.each { |i| i.backColor=$obj_color }
@@ -160,7 +158,6 @@ class Customers < FXMainWindow
                 case variable
                 when 0
                     list.each { |i| i.backColor=$bg_color }
-                    logo.blend($bg_color)
                 when 1
                     list.each { |i| i.backColor=$obj_color }
                 when 2
