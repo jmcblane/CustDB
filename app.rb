@@ -82,7 +82,7 @@ class Customers < FXMainWindow
             :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
-            :padLeft => 5, :padRight => 5, :padTop => 20, :padBottom => 10)
+            :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 10)
 
         @which_search = FXDataTarget.new(0)
 
