@@ -51,10 +51,10 @@ class Customers < FXMainWindow
 ####  DEFINE VISUALS ##
 
         super(app, "Customer Database", :width => 400, :height => 600)
+        @logo = FXPNGImage.new(app, File.open("image.png", "rb").read, IMAGE_KEEP)
 
         mainframe = FXVerticalFrame.new(self, LAYOUT_FILL_X|LAYOUT_FILL_Y,
             :padLeft => 5, :padRight => 5, :padTop => 5, :padBottom => 5)
-
 
         menubar = FXMenuBar.new(mainframe, LAYOUT_TOP|LAYOUT_FILL_X,
                 :padTop => 1, :padBottom => 1)
@@ -72,9 +72,14 @@ class Customers < FXMainWindow
 
         separator0 = FXSeparator.new(mainframe, LAYOUT_FILL_X|SEPARATOR_LINE)
 
-        @logo = FXPNGImage.new(app, File.open("image.png", "rb").read, IMAGE_KEEP)
-        image = FXImageFrame.new(mainframe, @logo, LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT, :width => 390, :height => 195)
-        @logo.blend($bg_color)
+        img_frame = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0, :hSpacing => 0)
+        imgspc1 = FXFrame.new(img_frame, LAYOUT_FILL,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+        image = FXImageFrame.new(img_frame, @logo, 0,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
+        imgspc2 = FXFrame.new(img_frame, LAYOUT_FILL,
+            :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0)
 
         row1 = FXHorizontalFrame.new(mainframe, LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,
             :padLeft => 5, :padRight => 5, :padTop => 20, :padBottom => 10)
@@ -100,7 +105,9 @@ class Customers < FXMainWindow
 
 #### COLORS ##
 
-        bg_list = [ mainframe, row1, row2, row4, spacer, spacer2, custie_btn, job_btn, active_btn, menubar, title1]
+        @logo.blend($bg_color)
+
+        bg_list = [ mainframe, row1, row2, row4, spacer, spacer2, custie_btn, job_btn, active_btn, menubar, title1, img_frame, imgspc1, imgspc2]
         obj_list = [ @search_txt, @customers_list, search_btn, mainmenu, opt1, opt2, opt3, opt4, opt5, opt6, opt7]
         bgtext_list = [title1, custie_btn, job_btn, active_btn]
         objtext_list = [opt1, opt2, opt3, opt4, opt5, opt6, opt7, @search_txt, search_btn, @customers_list]
