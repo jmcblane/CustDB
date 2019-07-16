@@ -126,6 +126,13 @@ class Customers < FXMainWindow
 
         @customers_list.connect(SEL_DOUBLECLICKED) { self.results_info }
 
+        @customers_list.connect(SEL_KEYPRESS) do |x, y, z|
+          if z.code == 65535 and @which_search.value == 2
+            DB.execute("update jobs set active = NOT active where rowid == #{@jobid};")
+            self.search_items
+          end
+        end
+
         @search_txt.connect (SEL_COMMAND) { self.search_items }
         @search_txt.connect (SEL_CHANGED) { self.search_items }
 
